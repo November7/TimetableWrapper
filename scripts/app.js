@@ -7,12 +7,32 @@ const state = {
   pathIndex: new Map(),
   currentCategory: "oddzialy",
   currentItem: null,
-  filterText: ""
+  filterText: "",
+  currentPlan: null,
+  planFontScale: 1,
+  labelVisibility: {
+    oddzialy: {
+      group: true,
+      teacher: true,
+      room: false
+    },
+    nauczyciele: {
+      group: true,
+      teacher: true,
+      room: false
+    },
+    sale: {
+      group: true,
+      teacher: true,
+      room: false
+    }
+  }
 };
 
 const refs = {
   sidebar: document.getElementById("sidebar"),
   list: document.getElementById("item-list"),
+  labelControls: document.getElementById("label-controls"),
   tabs: Array.from(document.querySelectorAll(".tab")),
   search: document.getElementById("search-input"),
   title: document.getElementById("plan-title"),
@@ -20,13 +40,21 @@ const refs = {
   schedule: document.getElementById("schedule"),
   generatedInfo: document.getElementById("generated-info"),
   menuToggle: document.getElementById("menu-toggle"),
+  fontDecrease: document.getElementById("font-decrease"),
+  fontIncrease: document.getElementById("font-increase"),
   themeToggle: document.getElementById("theme-toggle"),
   themeIcon: document.getElementById("theme-icon")
 };
 
+const FONT_SCALE_MIN = 0.8;
+const FONT_SCALE_MAX = 1.3;
+const FONT_SCALE_STEP = 0.1;
+
 async function init() {
   setupTheme();
+  setupPlanFontScale();
   attachEvents();
+  renderLabelControls();
   setStatus("Wczytywanie listy planow...");
 
   try {
@@ -67,6 +95,37 @@ function toggleTheme() {
   applyTheme(current === "dark" ? "light" : "dark");
 }
 
+function setupPlanFontScale() {
+  const saved = Number.parseFloat(localStorage.getItem("planFontScale") || "1");
+  applyPlanFontScale(Number.isFinite(saved) ? saved : 1);
+}
+
+function clampPlanFontScale(scale) {
+  return Math.max(FONT_SCALE_MIN, Math.min(FONT_SCALE_MAX, scale));
+}
+
+function applyPlanFontScale(scale) {
+  const clamped = clampPlanFontScale(scale);
+  const normalized = Math.round(clamped * 10) / 10;
+  state.planFontScale = normalized;
+  document.documentElement.style.setProperty("--plan-font-scale", String(normalized));
+  localStorage.setItem("planFontScale", String(normalized));
+  updateFontButtonsState();
+}
+
+function updateFontButtonsState() {
+  if (refs.fontDecrease) {
+    refs.fontDecrease.disabled = state.planFontScale <= FONT_SCALE_MIN;
+  }
+  if (refs.fontIncrease) {
+    refs.fontIncrease.disabled = state.planFontScale >= FONT_SCALE_MAX;
+  }
+}
+
+function changePlanFontScale(delta) {
+  applyPlanFontScale(state.planFontScale + delta);
+}
+
 function attachEvents() {
   refs.tabs.forEach((tab) => {
     tab.addEventListener("click", async () => {
@@ -78,6 +137,7 @@ function attachEvents() {
       state.currentCategory = category;
       state.currentItem = null;
       applyTabState();
+      renderLabelControls();
       renderItems();
 
       const first = getFilteredItems()[0];
@@ -110,6 +170,18 @@ function attachEvents() {
   });
 
   refs.themeToggle.addEventListener("click", toggleTheme);
+
+  if (refs.fontDecrease) {
+    refs.fontDecrease.addEventListener("click", () => {
+      changePlanFontScale(-FONT_SCALE_STEP);
+    });
+  }
+
+  if (refs.fontIncrease) {
+    refs.fontIncrease.addEventListener("click", () => {
+      changePlanFontScale(FONT_SCALE_STEP);
+    });
+  }
 
   document.addEventListener("click", (event) => {
     if (window.innerWidth > 860) {
@@ -230,6 +302,7 @@ async function selectItem(path) {
     state.currentCategory = item.category;
     state.currentItem = item;
     applyTabState();
+    renderLabelControls();
   } else {
     state.currentItem = {
       category: state.currentCategory,
@@ -243,11 +316,74 @@ async function selectItem(path) {
 
   try {
     const plan = await loadPlan(path);
+    state.currentPlan = plan;
     renderPlan(plan);
   } catch (error) {
     console.error(error);
+    state.currentPlan = null;
     setStatus("Nie udalo sie odczytac wybranego planu.", true);
   }
+}
+
+function getLabelVisibility(category) {
+  return state.labelVisibility[category] || state.labelVisibility.oddzialy;
+}
+
+function renderLabelControls() {
+  if (!refs.labelControls) {
+    return;
+  }
+
+  const visibility = getLabelVisibility(state.currentCategory);
+  const togglesByCategory = {
+    oddzialy: [
+      { key: "teacher", text: "Pokaz link nauczyciela" },
+      { key: "room", text: "Pokaz link sali" }
+    ],
+    nauczyciele: [
+      { key: "group", text: "Pokaz link oddzialu" },
+      { key: "room", text: "Pokaz link sali" }
+    ],
+    sale: [
+      { key: "teacher", text: "Pokaz link nauczyciela" },
+      { key: "group", text: "Pokaz link oddzialu" }
+    ]
+  };
+  const toggles = togglesByCategory[state.currentCategory] || togglesByCategory.oddzialy;
+
+  refs.labelControls.innerHTML = "";
+
+  const title = document.createElement("p");
+  title.className = "label-controls-title";
+  title.textContent = "Etykiety w komorkach";
+  refs.labelControls.appendChild(title);
+
+  toggles.forEach((toggle) => {
+    createLabelToggle(toggle.key, toggle.text, visibility[toggle.key]);
+  });
+}
+
+function createLabelToggle(key, text, checked) {
+  const wrapper = document.createElement("label");
+  wrapper.className = "toggle-line";
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.checked = checked;
+  input.addEventListener("change", () => {
+    const visibility = getLabelVisibility(state.currentCategory);
+    visibility[key] = input.checked;
+    if (state.currentPlan) {
+      renderPlan(state.currentPlan);
+    }
+  });
+
+  const caption = document.createElement("span");
+  caption.textContent = text;
+
+  wrapper.appendChild(input);
+  wrapper.appendChild(caption);
+  refs.labelControls.appendChild(wrapper);
 }
 
 async function loadPlan(path) {
@@ -388,6 +524,7 @@ function renderPlan(plan) {
   }
   refs.meta.textContent = metaParts.join(" | ");
   refs.generatedInfo.textContent = plan.generated || "";
+  const labelVisibility = getLabelVisibility(state.currentCategory);
 
   const table = document.createElement("table");
   table.className = "timetable";
@@ -449,9 +586,9 @@ function renderPlan(plan) {
           if (detail.length > 0) {
             const detailsNode = document.createElement("div");
             detailsNode.className = "entry-links";
-            appendDetailNode(detailsNode, "Oddzial", entry.group, entry.groupLink);
-            appendDetailNode(detailsNode, "Nauczyciel", entry.teacher, entry.teacherLink);
-            appendDetailNode(detailsNode, "Sala", entry.room, entry.roomLink);
+            appendDetailNode(detailsNode, "Oddzial", entry.group, entry.groupLink, labelVisibility.group, false);
+            appendDetailNode(detailsNode, "Nauczyciel", entry.teacher, entry.teacherLink, labelVisibility.teacher, false);
+            appendDetailNode(detailsNode, "Sala", entry.room, entry.roomLink, labelVisibility.room, false);
             card.appendChild(detailsNode);
           }
 
@@ -472,14 +609,16 @@ function renderPlan(plan) {
   refs.schedule.appendChild(table);
 }
 
-function appendDetailNode(container, label, value, linkPath) {
-  if (!value) {
+function appendDetailNode(container, label, value, linkPath, isVisible, showLabel) {
+  if (!isVisible || !value) {
     return;
   }
 
   const line = document.createElement("span");
   line.className = "details";
-  line.textContent = label + ": ";
+  if (showLabel) {
+    line.append(label + ": ");
+  }
 
   if (linkPath) {
     const anchor = document.createElement("a");

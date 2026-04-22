@@ -36,13 +36,22 @@
           <h2 id="plan-title">Wczytywanie planu...</h2>
           <p id="plan-meta" class="meta">Trwa odczyt danych z plikow zrodlowych.</p>
         </div>
-        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Przelacz motyw" title="Przelacz motyw">
-          <span id="theme-icon" aria-hidden="true">🌙</span>
-        </button>
+        <div class="header-actions">
+          <div class="font-controls" role="group" aria-label="Rozmiar czcionki planu">
+            <button id="font-decrease" class="font-toggle" type="button" aria-label="Zmniejsz czcionke planu" title="Zmniejsz czcionke">A-</button>
+            <button id="font-increase" class="font-toggle" type="button" aria-label="Powieksz czcionke planu" title="Powieksz czcionke">A+</button>
+          </div>
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Przelacz motyw" title="Przelacz motyw">
+            <span id="theme-icon" aria-hidden="true">🌙</span>
+          </button>
+        </div>
       </header>
 
       <section id="schedule" class="schedule" aria-live="polite"></section>
-      <footer id="generated-info" class="generated-info"></footer>
+      <div class="content-footer">
+        <footer id="generated-info" class="generated-info"></footer>
+        <div id="label-controls" class="label-controls" aria-live="polite"></div>
+      </div>
     </main>
   </div>
 

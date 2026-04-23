@@ -581,7 +581,16 @@ function renderGeneratedInfo(plan) {
   }
 
   parts.push("Wygenerowano za pomoca programu Vulcan");
+  info.append(parts.join(" | "));
   // info.append(parts.join(" | "), " | Aktualna wersja planu: ");
+  const repo_link = document.createElement("a");
+  repo_link.href = 'https://github.com/November7/TimetableWrapper';
+  repo_link.target = "_blank";
+  repo_link.rel = "noopener noreferrer";
+  repo_link.textContent = "GitHub repository (wrapper project)";
+
+  info.append(" | ", repo_link);
+
 
   const link = document.createElement("a");
   link.href = plan.path;

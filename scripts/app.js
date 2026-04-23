@@ -518,12 +518,8 @@ async function handleLinkedPlanClick(path, event) {
 function renderPlan(plan) {
   refs.title.textContent = plan.title || "Plan lekcji";
 
-  const metaParts = [];
-  if (plan.validFrom) {
-    metaParts.push(plan.validFrom);
-  }
-  refs.meta.textContent = metaParts.join(" | ");
-  refs.generatedInfo.textContent = plan.generated || "";
+  refs.meta.textContent = "";
+  renderGeneratedInfo(plan);
   const labelVisibility = getLabelVisibility(state.currentCategory);
 
   refs.schedule.innerHTML = "";
@@ -535,6 +531,33 @@ function renderPlan(plan) {
   if (mobileSchedule.activeDayIndex >= 0) {
     setActiveMobileDay(mobileSchedule.container, mobileSchedule.activeDayIndex, "auto");
   }
+}
+
+function renderGeneratedInfo(plan) {
+  if (!refs.generatedInfo) {
+    return;
+  }
+
+  refs.generatedInfo.innerHTML = "";
+
+  const info = document.createElement("p");
+  const parts = [];
+
+  if (plan.validFrom) {
+    parts.push(plan.validFrom);
+  }
+
+  parts.push("Wygenerowano za pomoca programu Vulcan");
+  // info.append(parts.join(" | "), " | Aktualna wersja planu: ");
+
+  const link = document.createElement("a");
+  link.href = plan.path;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = plan.path;
+
+  // info.appendChild(link);
+  refs.generatedInfo.appendChild(info);
 }
 
 function createDesktopTable(plan, labelVisibility) {

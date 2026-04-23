@@ -515,10 +515,27 @@ body {
 }
 
 .generated-info {
-  margin-top: 10px;
+  margin-top: 0;
   padding: 10px 4px 2px;
   font-size: 0.86rem;
   color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+}
+
+.generated-info p {
+  margin: 0;
+}
+
+.generated-info a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.generated-info a:hover,
+.generated-info a:focus-visible {
+  color: var(--accent-strong);
+  text-decoration: underline;
 }
 
 .content-footer {

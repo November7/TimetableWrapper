@@ -12,7 +12,7 @@ Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez p
 Uruchom serwer HTTP z katalogu **nadrzędnego** względem projektu, tak aby folder `plan` i folder `TimetableWrapper` były dostępne obok siebie:
 
 ```powershell
-cd "c:\Dane lokalne\Source"
+cd "path_to_directory_containing_local_repo"
 npx serve . --listen 5500
 ```
 

@@ -63,16 +63,16 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
-### 1.2.0 — 2026-04-23
+### 1.2.0 (2026-04-23)
 - Poprawka wyświetlania kolumny godzin przy węższym oknie przeglądarki — usunięto `white-space: nowrap`, zwiększono minimalną szerokość kolumny.
 - Usunięto pogrubienia z czcionek w całej aplikacji.
 
-### 1.1.0 — 2026-04-23
+### 1.1.0 (2026-04-23)
 - Dodano obsługę konfigurowalnej ścieżki do folderu planu przez zmienną `window.TIMETABLE_PLAN_ROOT`.
 - Dodano plik `.vscode/settings.json` z konfiguracją Live Server.
 - Dodano instrukcję uruchamiania przez `npx serve` z katalogu nadrzędnego.
 
-### 1.0.0 — wersja początkowa
+### 1.0.0 (wersja początkowa)
 - Odczyt listy oddziałów, nauczycieli i sal z pliku `lista.html`.
 - Parsowanie i renderowanie tabeli planu z plików Vulcan.
 - Wyszukiwanie i filtrowanie pozycji na liście bocznej.

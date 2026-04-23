@@ -4,6 +4,8 @@ const state = {
     nauczyciele: [],
     sale: []
   },
+  planSources: [],
+  currentPlanRoot: null,
   pathIndex: new Map(),
   currentCategory: "oddzialy",
   currentItem: null,
@@ -32,6 +34,7 @@ const state = {
 const refs = {
   sidebar: document.getElementById("sidebar"),
   list: document.getElementById("item-list"),
+  planSourceSelect: document.getElementById("plan-source-select"),
   labelControls: document.getElementById("label-controls"),
   tabs: Array.from(document.querySelectorAll(".tab")),
   search: document.getElementById("search-input"),
@@ -50,7 +53,10 @@ const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
 
-const PLAN_ROOT = normalizePlanRoot(window.TIMETABLE_PLAN_ROOT || "../plan");
+const DEFAULT_PLAN_ROOT = normalizePlanRoot(window.TIMETABLE_PLAN_ROOT || "../plan");
+const DEFAULT_ARCHIVE_ROOT = normalizePlanRoot(
+  window.TIMETABLE_ARCHIVE_ROOT || buildSiblingRoot(DEFAULT_PLAN_ROOT, "stareplany")
+);
 
 function normalizePlanRoot(value) {
   const raw = String(value || "").trim();
@@ -61,21 +67,42 @@ function normalizePlanRoot(value) {
   return raw.replace(/\/+$/, "");
 }
 
-function toPlanPath(relativePath) {
+function buildSiblingRoot(root, siblingName) {
+  const normalizedRoot = normalizePlanRoot(root);
+  const lastSlash = normalizedRoot.lastIndexOf("/");
+
+  if (lastSlash < 0) {
+    return siblingName;
+  }
+
+  const parent = normalizedRoot.slice(0, lastSlash);
+  if (!parent) {
+    return "/" + siblingName;
+  }
+
+  return parent + "/" + siblingName;
+}
+
+function getPlanRoot() {
+  return state.currentPlanRoot || DEFAULT_PLAN_ROOT;
+}
+
+function toPlanPath(relativePath, root = getPlanRoot()) {
+  const normalizedRoot = normalizePlanRoot(root);
   const clean = String(relativePath || "")
     .trim()
     .replace(/^\.\//, "")
     .replace(/^\//, "");
 
   if (!clean) {
-    return PLAN_ROOT;
+    return normalizedRoot;
   }
 
   if (/^(https?:)?\/\//i.test(clean)) {
     return clean;
   }
 
-  return PLAN_ROOT + "/" + clean;
+  return normalizedRoot + "/" + clean;
 }
 
 async function init() {
@@ -83,9 +110,12 @@ async function init() {
   setupPlanFontScale();
   attachEvents();
   renderLabelControls();
+  state.currentPlanRoot = DEFAULT_PLAN_ROOT;
   setStatus("Wczytywanie listy planow...");
 
   try {
+    await loadPlanSources();
+    renderPlanSourceOptions();
     await loadIndex();
     renderItems();
 
@@ -155,6 +185,17 @@ function changePlanFontScale(delta) {
 }
 
 function attachEvents() {
+  if (refs.planSourceSelect) {
+    refs.planSourceSelect.addEventListener("change", async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLSelectElement)) {
+        return;
+      }
+
+      await switchPlanRoot(target.value);
+    });
+  }
+
   refs.tabs.forEach((tab) => {
     tab.addEventListener("click", async () => {
       const category = tab.dataset.category;
@@ -237,6 +278,7 @@ function applyTabState() {
 }
 
 async function loadIndex() {
+  const planRoot = getPlanRoot();
   const indexPath = toPlanPath("lista.html");
   const response = await fetch(indexPath, { cache: "no-store" });
   if (!response.ok) {
@@ -247,13 +289,13 @@ async function loadIndex() {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
 
-  state.categories.oddzialy = parseCategory(doc, "oddzialy");
-  state.categories.nauczyciele = parseCategory(doc, "nauczyciele");
-  state.categories.sale = parseCategory(doc, "sale");
+  state.categories.oddzialy = parseCategory(doc, "oddzialy", planRoot);
+  state.categories.nauczyciele = parseCategory(doc, "nauczyciele", planRoot);
+  state.categories.sale = parseCategory(doc, "sale", planRoot);
   buildPathIndex();
 }
 
-function parseCategory(doc, id) {
+function parseCategory(doc, id, planRoot) {
   const root = doc.getElementById(id);
   if (!root) {
     return [];
@@ -266,10 +308,127 @@ function parseCategory(doc, id) {
       return {
         category: id,
         label: normalizeSpaces(a.textContent || ""),
-        path: toPlanPath(normalized)
+        path: toPlanPath(normalized, planRoot)
       };
     })
-    .filter((item) => item.path !== PLAN_ROOT);
+    .filter((item) => item.path !== normalizePlanRoot(planRoot));
+}
+
+async function loadPlanSources() {
+  const archiveRoot = DEFAULT_ARCHIVE_ROOT;
+  const sources = [
+    {
+      label: "Aktualny",
+      root: DEFAULT_PLAN_ROOT
+    }
+  ];
+
+  try {
+    const response = await fetch(archiveRoot + "/", { cache: "no-store" });
+    if (response.ok) {
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const folders = getArchiveFolderNames(doc);
+
+      folders.forEach((name) => {
+        sources.push({
+          label: name,
+          root: toPlanPath(name, archiveRoot)
+        });
+      });
+    }
+  } catch (error) {
+    console.warn("Nie udalo sie odczytac listy folderu stareplany.", error);
+  }
+
+  state.planSources = sources;
+}
+
+function getArchiveFolderNames(doc) {
+  const folders = new Set();
+
+  Array.from(doc.querySelectorAll("a[href]")).forEach((anchor) => {
+    const href = String(anchor.getAttribute("href") || "").trim();
+    if (!href || href === "./" || href === "../") {
+      return;
+    }
+
+    const withoutHash = href.split("#")[0];
+    const clean = withoutHash.split("?")[0];
+    if (!clean) {
+      return;
+    }
+
+    let folderName = "";
+
+    const trimmed = clean.replace(/^\.\//, "").replace(/\/$/, "");
+    if (!trimmed || trimmed.endsWith(".html")) {
+      return;
+    }
+
+    const parts = trimmed.split("/").filter(Boolean);
+    if (parts.length === 0) {
+      return;
+    }
+
+    folderName = decodeURIComponent(parts[parts.length - 1]);
+    if (!folderName || folderName.toLowerCase() === "stareplany") {
+      return;
+    }
+
+    folders.add(folderName);
+  });
+
+  return Array.from(folders).sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
+}
+
+function renderPlanSourceOptions() {
+  if (!refs.planSourceSelect) {
+    return;
+  }
+
+  refs.planSourceSelect.innerHTML = "";
+
+  state.planSources.forEach((source) => {
+    const option = document.createElement("option");
+    option.value = source.root;
+    option.textContent = source.label;
+    refs.planSourceSelect.appendChild(option);
+  });
+
+  refs.planSourceSelect.value = getPlanRoot();
+}
+
+async function switchPlanRoot(nextRoot) {
+  const normalizedNextRoot = normalizePlanRoot(nextRoot);
+  if (!normalizedNextRoot || normalizedNextRoot === getPlanRoot()) {
+    return;
+  }
+
+  state.currentPlanRoot = normalizedNextRoot;
+  state.currentItem = null;
+  state.currentPlan = null;
+  state.filterText = "";
+
+  refs.search.value = "";
+  setStatus("Wczytywanie listy planow...", false);
+
+  try {
+    await loadIndex();
+    renderItems();
+
+    const first = state.categories[state.currentCategory][0] || getFilteredItems()[0];
+    if (first) {
+      await selectItem(first.path);
+      return;
+    }
+
+    setStatus("Brak pozycji w wybranej wersji planu.", false);
+  } catch (error) {
+    console.error(error);
+    setStatus("Nie udalo sie odczytac wybranej wersji planu.", true);
+  }
 }
 
 function buildPathIndex() {

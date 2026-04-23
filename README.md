@@ -5,11 +5,12 @@ Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez p
 ## Wymagania
 
 - Folder z planem wygenerowany przez Vulcan (domyślnie katalog `plan` obok folderu projektu).
+- Folder `stareplany` obok folderu `plan` (opcjonalnie) z podfolderami archiwalnych wersji planu.
 - Lokalny serwer HTTP — aplikacja korzysta z `fetch()`, który nie działa przy otwarciu pliku bezpośrednio z dysku (`file://`).
 
 ## Uruchomienie
 
-Uruchom serwer HTTP z katalogu **nadrzędnego** względem projektu, tak aby folder `plan` i folder `TimetableWrapper` były dostępne obok siebie:
+Uruchom serwer HTTP z katalogu **nadrzędnego** względem projektu, tak aby foldery `plan`, `stareplany` i `TimetableWrapper` były dostępne obok siebie:
 
 ```powershell
 cd "path_to_directory_containing_local_repo"
@@ -28,6 +29,14 @@ Domyślna ścieżka to `../plan`. Można ją nadpisać, dodając przed dołącze
 
 ```html
 <script>window.TIMETABLE_PLAN_ROOT = "../inna-sciezka";</script>
+```
+
+### Konfiguracja ścieżki do archiwum
+
+Domyślna ścieżka do archiwum to folder `../stareplany` (czyli folder obok `../plan`). Można ją nadpisać:
+
+```html
+<script>window.TIMETABLE_ARCHIVE_ROOT = "../inna-sciezka-do-archiwum";</script>
 ```
 
 ## Funkcje
@@ -53,6 +62,14 @@ TimetableWrapper/
 ../plan/                # Folder z plikami Vulcan (poza projektem)
     lista.html
     ...
+
+../stareplany/          # Folder archiwalnych planow (poza projektem)
+    2025-09-01/
+        lista.html
+        ...
+    2025-10-01/
+        lista.html
+        ...
 ```
 
 ## Motywy

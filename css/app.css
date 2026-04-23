@@ -8,7 +8,7 @@
   --accent-strong: #0a4f4a;
   --line: #d5deed;
   --shadow: 0 18px 50px rgba(18, 36, 66, 0.12);
-  --radius: 18px;
+  --radius: 5px;
   --plan-font-scale: 1;
 }
 
@@ -94,6 +94,34 @@ body {
   font-size: 0.9rem;
 }
 
+.plan-select-wrap {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.plan-select-wrap select {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 5px;
+  padding: 8px 10px;
+  background: rgba(7, 16, 26, 0.24);
+  color: #f2fbff;
+  font: inherit;
+  font-size: larger;
+}
+
+.plan-select-wrap select:focus {
+  outline: 2px solid rgba(188, 247, 241, 0.85);
+  border-color: rgba(188, 247, 241, 0.85);
+}
+
+.plan-select-wrap option {
+  color: #0f1724;
+}
+
 .search-wrap {
   padding: 14px 18px;
   display: grid;
@@ -104,7 +132,7 @@ body {
 
 .search-wrap input {
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 5px;
   background: var(--panel-soft);
   color: var(--ink);
   padding: 10px 12px;
@@ -127,7 +155,7 @@ body {
   margin: 0;
   padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: var(--panel-soft);
   display: grid;
   gap: 8px;
@@ -154,7 +182,7 @@ body {
 
 .tab {
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--ink-soft);
   padding: 8px 6px;
@@ -179,7 +207,7 @@ body {
 .item-list button {
   width: 100%;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius);
   text-align: left;
   padding: 9px 11px;
   font-size: 0.93rem;
@@ -247,7 +275,7 @@ body {
 .theme-toggle,
 .font-toggle {
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: var(--panel-soft);
   color: var(--ink);
   font-weight: 700;
@@ -284,7 +312,7 @@ body {
   overflow-x: auto;
   overflow-y: visible;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   font-size: calc(1rem * var(--plan-font-scale));
   background: var(--panel);
 }
@@ -353,7 +381,7 @@ body {
 
 .mobile-lesson {
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--panel-soft);
   padding: 12px;
   display: grid;
@@ -458,7 +486,7 @@ body {
 .entry {
   border: 1px solid #d6efe9;
   background: #f3fffc;
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 6px;
   display: grid;
   gap: 3px;
@@ -503,8 +531,20 @@ body {
 }
 
 .entry-link:hover {
-  border-bottom-color: currentColor;
+  color: var(--ink-soft);
+  border-bottom-color: var(--ink-soft);
 }
+
+.entry-link:active {
+  color: var(--ink-soft);
+  border-bottom-color: var(--ink-soft);
+}
+
+.entry-link:visited {
+  color: var(--ink-soft);
+  border-bottom-color: var(--ink-soft);
+}
+
 
 .empty {
   color: #8a96ab;
@@ -562,7 +602,7 @@ body {
     z-index: 11;
     transform: translateX(-104%);
     transition: transform 220ms ease;
-    border-radius: 0 14px 14px 0;
+    border-radius: 0 var(--radius) var(--radius) 0;
   }
 
   .sidebar.open {

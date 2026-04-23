@@ -286,6 +286,99 @@ body {
   border: 1px solid var(--line);
   border-radius: 14px;
   font-size: calc(1rem * var(--plan-font-scale));
+  background: var(--panel);
+}
+
+.mobile-days {
+  display: none;
+}
+
+.mobile-day {
+  scroll-margin-top: 12px;
+}
+
+.mobile-day + .mobile-day {
+  border-top: 1px solid var(--line);
+}
+
+.mobile-day-toggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 16px;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.mobile-day-toggle::after {
+  content: "+";
+  color: var(--accent);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.mobile-day.active .mobile-day-toggle {
+  background: var(--panel-soft);
+}
+
+.mobile-day.active .mobile-day-toggle::after {
+  content: "−";
+}
+
+.mobile-day-toggle:focus-visible {
+  outline: 2px solid #8bdad2;
+  outline-offset: -2px;
+}
+
+.mobile-day-panel {
+  padding: 0 14px 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.mobile-day-panel[hidden] {
+  display: none;
+}
+
+.mobile-day-empty {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.mobile-lesson {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-soft);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.mobile-lesson-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-lesson-number {
+  font-weight: 700;
+}
+
+.mobile-lesson-time {
+  color: var(--ink-soft);
+  font-size: 0.88em;
+}
+
+.mobile-entry-list {
+  display: grid;
+  gap: 8px;
 }
 
 .timetable {
@@ -483,7 +576,15 @@ body {
     min-width: 0;
   }
 
+  .schedule {
+    overflow: visible;
+  }
+
   .timetable {
-    min-width: 700px;
+    display: none;
+  }
+
+  .mobile-days {
+    display: grid;
   }
 }

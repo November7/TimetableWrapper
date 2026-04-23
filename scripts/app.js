@@ -526,6 +526,19 @@ function renderPlan(plan) {
   refs.generatedInfo.textContent = plan.generated || "";
   const labelVisibility = getLabelVisibility(state.currentCategory);
 
+  refs.schedule.innerHTML = "";
+  refs.schedule.appendChild(createDesktopTable(plan, labelVisibility));
+
+  const mobileSchedule = createMobileSchedule(plan, labelVisibility);
+  refs.schedule.appendChild(mobileSchedule.container);
+
+  if (mobileSchedule.activeDayIndex >= 0) {
+    setActiveMobileDay(mobileSchedule.container, mobileSchedule.activeDayIndex, "auto");
+  }
+}
+
+function createDesktopTable(plan, labelVisibility) {
+
   const table = document.createElement("table");
   table.className = "timetable";
 
@@ -569,30 +582,7 @@ function renderPlan(plan) {
         list.className = "entry-list";
 
         entries.forEach((entry) => {
-          const card = document.createElement("article");
-          card.className = "entry";
-
-          const subject = document.createElement("div");
-          subject.className = "subject";
-          subject.textContent = entry.subject || entry.text;
-          card.appendChild(subject);
-
-          const detail = [
-            entry.group,
-            entry.teacher,
-            entry.room
-          ].filter(Boolean);
-
-          if (detail.length > 0) {
-            const detailsNode = document.createElement("div");
-            detailsNode.className = "entry-links";
-            appendDetailNode(detailsNode, "Oddzial", entry.group, entry.groupLink, labelVisibility.group, false);
-            appendDetailNode(detailsNode, "Nauczyciel", entry.teacher, entry.teacherLink, labelVisibility.teacher, false);
-            appendDetailNode(detailsNode, "Sala", entry.room, entry.roomLink, labelVisibility.room, false);
-            card.appendChild(detailsNode);
-          }
-
-          list.appendChild(card);
+          list.appendChild(createEntryCard(entry, labelVisibility, false));
         });
 
         cell.appendChild(list);
@@ -605,8 +595,171 @@ function renderPlan(plan) {
   });
 
   table.appendChild(tbody);
-  refs.schedule.innerHTML = "";
-  refs.schedule.appendChild(table);
+  return table;
+}
+
+function createMobileSchedule(plan, labelVisibility) {
+  const container = document.createElement("div");
+  container.className = "mobile-days";
+
+  const activeDayIndex = getTodayPlanDayIndex(plan.days);
+
+  plan.days.forEach((day, dayIndex) => {
+    const section = document.createElement("section");
+    section.className = "mobile-day";
+    section.dataset.dayIndex = String(dayIndex);
+    section.tabIndex = -1;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "mobile-day-toggle";
+    button.textContent = day;
+    button.setAttribute("aria-expanded", "false");
+
+    const panel = document.createElement("div");
+    panel.className = "mobile-day-panel";
+    panel.hidden = true;
+
+    const lessons = plan.lessons.filter((lesson) => lesson.dayEntries[dayIndex]?.length > 0);
+    if (lessons.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "mobile-day-empty";
+      empty.textContent = "Brak zajec";
+      panel.appendChild(empty);
+    } else {
+      lessons.forEach((lesson) => {
+        const lessonBlock = document.createElement("article");
+        lessonBlock.className = "mobile-lesson";
+
+        const header = document.createElement("div");
+        header.className = "mobile-lesson-header";
+
+        const number = document.createElement("span");
+        number.className = "mobile-lesson-number";
+        number.textContent = lesson.number + ". lekcja";
+
+        const time = document.createElement("span");
+        time.className = "mobile-lesson-time";
+        time.textContent = lesson.time;
+
+        header.appendChild(number);
+        header.appendChild(time);
+        lessonBlock.appendChild(header);
+
+        const entryList = document.createElement("div");
+        entryList.className = "mobile-entry-list";
+        lesson.dayEntries[dayIndex].forEach((entry) => {
+          entryList.appendChild(createEntryCard(entry, labelVisibility, true));
+        });
+
+        lessonBlock.appendChild(entryList);
+        panel.appendChild(lessonBlock);
+      });
+    }
+
+    button.addEventListener("click", () => {
+      setActiveMobileDay(container, dayIndex, "smooth");
+    });
+
+    section.appendChild(button);
+    section.appendChild(panel);
+    container.appendChild(section);
+  });
+
+  return {
+    container,
+    activeDayIndex
+  };
+}
+
+function createEntryCard(entry, labelVisibility, showLabel) {
+  const card = document.createElement("article");
+  card.className = "entry";
+
+  const subject = document.createElement("div");
+  subject.className = "subject";
+  subject.textContent = entry.subject || entry.text;
+  card.appendChild(subject);
+
+  const detailsNode = document.createElement("div");
+  detailsNode.className = "entry-links";
+  appendDetailNode(detailsNode, "Oddzial", entry.group, entry.groupLink, labelVisibility.group, showLabel);
+  appendDetailNode(detailsNode, "Nauczyciel", entry.teacher, entry.teacherLink, labelVisibility.teacher, showLabel);
+  appendDetailNode(detailsNode, "Sala", entry.room, entry.roomLink, labelVisibility.room, showLabel);
+
+  if (detailsNode.childElementCount > 0) {
+    card.appendChild(detailsNode);
+  }
+
+  return card;
+}
+
+function getTodayPlanDayIndex(days) {
+  const today = new Date().getDay();
+  const aliases = {
+    niedziela: 0,
+    ndz: 0,
+    poniedzialek: 1,
+    pon: 1,
+    wtorek: 2,
+    wt: 2,
+    sroda: 3,
+    sr: 3,
+    czwartek: 4,
+    czw: 4,
+    piatek: 5,
+    pt: 5,
+    sobota: 6,
+    sob: 6
+  };
+
+  const dayIndex = days.findIndex((day) => aliases[normalizeDayName(day)] === today);
+  return dayIndex >= 0 ? dayIndex : 0;
+}
+
+function normalizeDayName(value) {
+  return normalizeSpaces(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function setActiveMobileDay(container, activeDayIndex, scrollBehavior) {
+  const sections = Array.from(container.querySelectorAll(".mobile-day"));
+  let activeSection = null;
+  let activeButton = null;
+
+  sections.forEach((section, dayIndex) => {
+    const isActive = dayIndex === activeDayIndex;
+    section.classList.toggle("active", isActive);
+
+    const button = section.querySelector(".mobile-day-toggle");
+    const panel = section.querySelector(".mobile-day-panel");
+    if (button) {
+      button.setAttribute("aria-expanded", String(isActive));
+    }
+    if (panel) {
+      panel.hidden = !isActive;
+    }
+
+    if (isActive) {
+      activeSection = section;
+      activeButton = button;
+    }
+  });
+
+  if (!activeSection || !activeButton || !window.matchMedia("(max-width: 860px)").matches) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    activeButton.focus({ preventScroll: true });
+    const top = activeSection.getBoundingClientRect().top + window.scrollY - 12;
+    window.scrollTo({
+      top: Math.max(top, 0),
+      behavior: scrollBehavior
+    });
+  });
 }
 
 function appendDetailNode(container, label, value, linkPath, isVisible, showLabel) {

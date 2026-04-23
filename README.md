@@ -1,6 +1,6 @@
 # Timetable Wrapper
 
-Nowoczesny wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.
+Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.
 
 ## Wymagania
 
@@ -12,7 +12,7 @@ Nowoczesny wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowan
 Uruchom serwer HTTP z katalogu **nadrzędnego** względem projektu, tak aby folder `plan` i folder `TimetableWrapper` były dostępne obok siebie:
 
 ```powershell
-cd "c:\Dane lokalne\Source"
+cd "path_to_directory_containing_local_repo"
 npx serve . --listen 5500
 ```
 

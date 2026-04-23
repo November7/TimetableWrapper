@@ -50,6 +50,34 @@ const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
 
+const PLAN_ROOT = normalizePlanRoot(window.TIMETABLE_PLAN_ROOT || "../plan");
+
+function normalizePlanRoot(value) {
+  const raw = String(value || "").trim();
+  if (!raw) {
+    return "src";
+  }
+
+  return raw.replace(/\/+$/, "");
+}
+
+function toPlanPath(relativePath) {
+  const clean = String(relativePath || "")
+    .trim()
+    .replace(/^\.\//, "")
+    .replace(/^\//, "");
+
+  if (!clean) {
+    return PLAN_ROOT;
+  }
+
+  if (/^(https?:)?\/\//i.test(clean)) {
+    return clean;
+  }
+
+  return PLAN_ROOT + "/" + clean;
+}
+
 async function init() {
   setupTheme();
   setupPlanFontScale();
@@ -209,9 +237,10 @@ function applyTabState() {
 }
 
 async function loadIndex() {
-  const response = await fetch("src/lista.html", { cache: "no-store" });
+  const indexPath = toPlanPath("lista.html");
+  const response = await fetch(indexPath, { cache: "no-store" });
   if (!response.ok) {
-    throw new Error("Brak dostepu do src/lista.html");
+    throw new Error("Brak dostepu do " + indexPath);
   }
 
   const html = await response.text();
@@ -237,10 +266,10 @@ function parseCategory(doc, id) {
       return {
         category: id,
         label: normalizeSpaces(a.textContent || ""),
-        path: "src/" + normalized
+        path: toPlanPath(normalized)
       };
     })
-    .filter((item) => item.path !== "src/");
+    .filter((item) => item.path !== PLAN_ROOT);
 }
 
 function buildPathIndex() {
@@ -491,17 +520,21 @@ function resolvePlanPath(href) {
     return "";
   }
 
-  const clean = raw.replace(/^\.\//, "");
+  if (/^(https?:)?\/\//i.test(raw)) {
+    return raw;
+  }
+
+  const clean = raw.replace(/^\.\//, "").replace(/^\//, "");
   if (clean.startsWith("src/")) {
-    return clean;
+    return toPlanPath(clean.slice(4));
   }
   if (clean.startsWith("plany/")) {
-    return "src/" + clean;
+    return toPlanPath(clean);
   }
   if (/^[nos]\d+\.html$/i.test(clean)) {
-    return "src/plany/" + clean;
+    return toPlanPath("plany/" + clean);
   }
-  return "src/plany/" + clean;
+  return toPlanPath("plany/" + clean);
 }
 
 async function handleLinkedPlanClick(path, event) {

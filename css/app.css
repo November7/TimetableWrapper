@@ -98,7 +98,6 @@ body {
   padding: 14px 18px;
   display: grid;
   gap: 8px;
-  font-weight: 600;
   color: var(--ink-soft);
 }
 
@@ -136,7 +135,6 @@ body {
 .label-controls-title {
   margin: 0;
   font-size: 0.84rem;
-  font-weight: 700;
   color: var(--ink-soft);
 }
 
@@ -158,7 +156,6 @@ body {
   background: transparent;
   color: var(--ink-soft);
   padding: 8px 6px;
-  font-weight: 600;
   cursor: pointer;
 }
 
@@ -250,7 +247,6 @@ body {
   border-radius: 10px;
   background: var(--panel-soft);
   color: var(--ink);
-  font-weight: 700;
   padding: 8px 12px;
   cursor: pointer;
 }
@@ -308,7 +304,6 @@ body {
   color: var(--ink);
   padding: 16px;
   font: inherit;
-  font-weight: 700;
   text-align: left;
   display: flex;
   align-items: center;
@@ -368,7 +363,6 @@ body {
 }
 
 .mobile-lesson-number {
-  font-weight: 700;
 }
 
 .mobile-lesson-time {
@@ -409,31 +403,29 @@ body {
   padding-left: 4px;
   padding-right: 4px;
   text-align: center;
-  font-weight: 700;
   color: var(--ink);
   background: var(--panel-soft);
 }
 
 .time-col {
-  width: 5%;
+  width: 9%;
+  min-width: 72px;
   padding-left: 6px;
   padding-right: 6px;
-  white-space: nowrap;
+  word-break: break-all;
   color: var(--ink-soft);
-  font-weight: 600;
   background: var(--panel-soft);
 }
 
 .timetable th:nth-child(1) {
-  width: 5%;
-  white-space: nowrap;
+  width: 3%;
   padding-left: 6px;
   padding-right: 6px;
 }
 
 .timetable th:nth-child(2) {
-  width: 8%;
-  white-space: nowrap;
+  width: 9%;
+  min-width: 72px;
   padding-left: 6px;
   padding-right: 6px;
 }
@@ -467,7 +459,6 @@ body {
 }
 
 .entry .subject {
-  font-weight: 700;
 }
 
 .entry .details {
@@ -528,7 +519,6 @@ body {
 
 .generated-info a {
   color: var(--accent);
-  font-weight: 700;
   text-decoration: none;
 }
 

@@ -11,6 +11,7 @@ const state = {
   currentItem: null,
   filterText: "",
   currentPlan: null,
+  currentPlanSourceLabel: "Aktualny",
   planFontScale: 1,
   labelVisibility: {
     oddzialy: {
@@ -52,6 +53,8 @@ const refs = {
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
+const ARCHIVE_RECENT_YEARS = 2;
+const ARCHIVE_MAX_ENTRIES = 10;
 
 const DEFAULT_PLAN_ROOT = normalizePlanRoot(window.TIMETABLE_PLAN_ROOT || "../plan");
 const DEFAULT_ARCHIVE_ROOT = normalizePlanRoot(
@@ -114,9 +117,10 @@ async function init() {
   setStatus("Wczytywanie listy planow...");
 
   try {
+    await loadIndex();
+    state.currentPlanSourceLabel = await buildCurrentPlanSourceLabel();
     await loadPlanSources();
     renderPlanSourceOptions();
-    await loadIndex();
     renderItems();
 
     const first = state.categories[state.currentCategory][0];
@@ -318,7 +322,7 @@ async function loadPlanSources() {
   const archiveRoot = DEFAULT_ARCHIVE_ROOT;
   const sources = [
     {
-      label: "Aktualny",
+      label: state.currentPlanSourceLabel || "Aktualny",
       root: DEFAULT_PLAN_ROOT
     }
   ];
@@ -343,6 +347,64 @@ async function loadPlanSources() {
   }
 
   state.planSources = sources;
+}
+
+function extractIsoDateFromText(value) {
+
+  // Szukamy pierwszej daty DD.MM.RRRR w całym tekście
+  const match = /(\d{1,2})[./-](\d{1,2})[./-](\d{4})/.exec(String(value || ""));
+  if (!match) {
+    return "";
+  }
+
+  const day = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const year = Number.parseInt(match[3], 10);
+
+  // Walidacja zakresów
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    return "";
+  }
+
+  // Formatowanie do DD.MM.RRRR
+  const dd = String(day).padStart(2, "0");
+  const mm = String(month).padStart(2, "0");
+
+  return `od ${dd}.${mm}.${year}`;
+}
+
+
+
+function getFirstPlanItemPath() {
+  const groups = [state.categories.oddzialy, state.categories.nauczyciele, state.categories.sale];
+  for (const items of groups) {
+    if (items && items.length > 0 && items[0].path) {
+      return items[0].path;
+    }
+  }
+
+  return "";
+}
+
+async function buildCurrentPlanSourceLabel() {
+  const fallbackLabel = "Aktualny";
+  const firstPlanPath = getFirstPlanItemPath();
+  if (!firstPlanPath) {
+    return fallbackLabel;
+  }
+  
+  try {
+    const plan = await loadPlan(firstPlanPath);    
+    const date = extractIsoDateFromText(plan.validFrom);    
+    if (!date) {
+      return fallbackLabel;
+    }
+    
+    return `Aktualny (${date} r.)`;
+  } catch (error) {
+    console.warn("Nie udalo sie odczytac daty dla etykiety planu aktualnego.", error);
+    return fallbackLabel;
+  }
 }
 
 function getArchiveFolderNames(doc) {
@@ -380,7 +442,47 @@ function getArchiveFolderNames(doc) {
     folders.add(folderName);
   });
 
-  return Array.from(folders).sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
+  const currentYear = new Date().getFullYear();
+  const oldestYear = currentYear - (ARCHIVE_RECENT_YEARS - 1);
+
+  return Array.from(folders)
+    .map((name) => {
+      const parsedDate = parseArchiveFolderDate(name);
+      return {
+        name,
+        date: parsedDate
+      };
+    })
+    .filter((entry) => entry.date && entry.date.getFullYear() >= oldestYear)
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, ARCHIVE_MAX_ENTRIES)
+    .map((entry) => entry.name);
+}
+
+function parseArchiveFolderDate(folderName) {
+  const match = /^do\s+(\d{4})\.(\d{2})\.(\d{2})$/i.exec(String(folderName || "").trim());
+  if (!match) {
+    return null;
+  }
+
+  const year = Number.parseInt(match[1], 10);
+  const monthIndex = Number.parseInt(match[2], 10) - 1;
+  const day = Number.parseInt(match[3], 10);
+
+  if (!Number.isInteger(year) || !Number.isInteger(monthIndex) || !Number.isInteger(day)) {
+    return null;
+  }
+
+  const parsed = new Date(year, monthIndex, day);
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== monthIndex ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed;
 }
 
 function renderPlanSourceOptions() {
@@ -390,11 +492,24 @@ function renderPlanSourceOptions() {
 
   refs.planSourceSelect.innerHTML = "";
 
-  state.planSources.forEach((source) => {
+  state.planSources.forEach((source, index) => {
     const option = document.createElement("option");
     option.value = source.root;
-    option.textContent = source.label;
+    let prefix = '';
+    if (index >= 1) {
+      prefix = ' ▸ Obowiązujący ';
+    }
+
+    option.textContent = prefix + source.label;
     refs.planSourceSelect.appendChild(option);
+
+    if (index === 0 && state.planSources.length > 1) {
+      const separator = document.createElement("option");
+      separator.value = "";
+      separator.textContent = "Archiwalne:";
+      separator.disabled = true;
+      refs.planSourceSelect.appendChild(separator);
+    }
   });
 
   refs.planSourceSelect.value = getPlanRoot();
@@ -585,7 +700,7 @@ async function loadPlan(path) {
   const doc = parser.parseFromString(html, "text/html");
 
   const title = normalizeSpaces(doc.querySelector(".tytulnapis")?.textContent || state.currentItem?.label || "Plan lekcji");
-  const validFrom = normalizeSpaces(findLabelText(doc, "Obowiazuje od:"));
+  const validFrom = normalizeSpaces(findLabelText(doc, "Obowiązuje od:"));
   const generated = normalizeSpaces(doc.querySelector(".op")?.textContent || findLabelText(doc, "wygenerowano"));
 
   const table = doc.querySelector("table.tabela");

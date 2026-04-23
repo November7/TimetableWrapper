@@ -851,7 +851,7 @@ function renderGeneratedInfo(plan) {
   const parts = [];
 
   if (plan.validFrom) {
-    parts.push(plan.validFrom);
+    // parts.push(plan.validFrom);
   }
 
   parts.push("Wygenerowano za pomoca programu Vulcan");

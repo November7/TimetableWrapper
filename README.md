@@ -37,7 +37,7 @@ Domyślna ścieżka to `../plan`. Można ją nadpisać, dodając przed dołącze
 - **Etykiety w komórkach** — przełączniki widoczności linków do nauczyciela, sali i oddziału (osobno dla każdej kategorii).
 - **Rozmiar czcionki** — przyciski A− / A+ skalują treść planu (zakres 80–130%, zapisywany lokalnie).
 - **Motyw jasny/ciemny** — przełącznik z automatycznym wykrywaniem preferencji systemowych; wybór zapisywany lokalnie.
-- **Widok mobilny** — poniżej 860 px tabela zastępowana jest akordetem z podziałem na dni tygodnia; panel boczny wysuwa się po naciśnięciu przycisku Menu.
+- **Widok mobilny** —  poniżej 860 px tabela zostaje zastąpiona widokiem "akordeon" z podziałem na dni tygodnia. Panel boczny wysuwa się po naciśnięciu przycisku Menu.
 - **Informacje o planie** — data obowiązywania i data wygenerowania wyświetlane pod planem.
 
 ## Struktura projektu
@@ -80,4 +80,4 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 - Przełączniki widoczności etykiet (nauczyciel, sala, oddział) per kategoria.
 - Regulacja rozmiaru czcionki planu (A− / A+) z zapisem w `localStorage`.
 - Motyw jasny/ciemny z wykrywaniem preferencji systemowych i zapisem w `localStorage`.
-- Responsywny widok mobilny z akordetem dni i wysuwanym panelem bocznym.
+- Responsywny widok mobilny z akordeonem dni i wysuwanym panelem bocznym.

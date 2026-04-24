@@ -80,6 +80,9 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.1 (2026-04-24)
+- Naprawiono przewijanie wysuwanego panelu bocznego w widoku mobilnym. Lista oddziałów, nauczycieli i sal ma teraz własny pionowy scroll i pozostaje używalna przy dłuższych zestawieniach.
+
 ### 1.3.0 (2026-04-23)
 - Ulepszono styl kontrolki wyboru wersji planu (`select`) tak, aby spójnie działał w motywie jasnym i ciemnym (kolory tła, obramowania, focus, lista opcji).
 - Dodano logiczny separator `Archiwalne:` po pozycji `Aktualny` w liście źródeł planu (pozycja nieaktywna, tylko informacyjna).

@@ -81,6 +81,17 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.1 (2026-04-24)
+- Naprawiono przewijanie wysuwanego panelu bocznego w widoku mobilnym. Lista oddziałów, nauczycieli i sal ma teraz własny pionowy scroll i pozostaje używalna przy dłuższych zestawieniach.
+
+### 1.3.0 (2026-04-23)
+- Ulepszono styl kontrolki wyboru wersji planu (`select`) tak, aby spójnie działał w motywie jasnym i ciemnym (kolory tła, obramowania, focus, lista opcji).
+- Dodano logiczny separator `Archiwalne:` po pozycji `Aktualny` w liście źródeł planu (pozycja nieaktywna, tylko informacyjna).
+- Zmieniono kolejność archiwalnych folderów planu na malejącą po dacie (`do RRRR.MM.DD`) — od najnowszych do najstarszych.
+- Ograniczono listę archiwów do ostatnich wpisów z bieżącego i poprzedniego roku (z limitem liczby pozycji).
+- Dodano dynamiczny opis pozycji aktualnego planu w selekcie: `Aktualny: (RRRR - MM - DD)` na podstawie pola `Obowiazuje od`; jeśli brak daty, pozostaje `Aktualny`.
+- Ujednolicono kolor linku do repozytorium GitHub w stopce, tak aby zawsze był taki sam jak kolor otaczającego tekstu.
+
 ### 1.2.0 (2026-04-23)
 - Poprawka wyświetlania kolumny godzin przy węższym oknie przeglądarki — usunięto `white-space: nowrap`, zwiększono minimalną szerokość kolumny.
 - Usunięto pogrubienia z czcionek w całej aplikacji.

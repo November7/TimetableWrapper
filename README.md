@@ -55,6 +55,7 @@ Można opcjonalnie podmienić nazwy przedmiotów podczas parsowania planu, przek
 
 Podmiana działa na zasadzie dokładnego dopasowania po znormalizowaniu spacji.
 Jeśli nazwa przedmiotu zawiera zapis grupy w formacie `przedmiot-2/2`, aplikacja najpierw zamieni go na `przedmiot 2/2`, a potem spróbuje wykonać mapowanie całej nazwy albo samej bazowej nazwy przedmiotu z zachowaniem oznaczenia grupy.
+Dodatkowo finalna nazwa przedmiotu jest automatycznie kapitalizowana (pierwsza litera wielka), niezależnie od mapowania.
 
 ## Funkcje
 
@@ -64,6 +65,8 @@ Jeśli nazwa przedmiotu zawiera zapis grupy w formacie `przedmiot-2/2`, aplikacj
 - **Rozmiar czcionki** — przyciski A− / A+ skalują treść planu (zakres 80–130%, zapisywany lokalnie).
 - **Motyw jasny/ciemny** — przełącznik z automatycznym wykrywaniem preferencji systemowych; wybór zapisywany lokalnie.
 - **Widok mobilny** —  poniżej 860 px tabela zostaje zastąpiona widokiem "akordeon" z podziałem na dni tygodnia. Panel boczny wysuwa się po naciśnięciu przycisku Menu.
+- **Podział grup w komórkach** — gdy w danej lekcji występuje tylko jedna grupa w formacie `X/N` (np. `1/2`, `2/2`, `1/3`), aplikacja automatycznie dokłada pusty slot po przeciwnej stronie, aby zachować czytelny podział. Grupa `1/N` jest po lewej, a `X/N` dla `X>1` po prawej.
+- **Równe kolumny wpisów** — wpisy lekcji w jednej komórce mają zawsze taką samą szerokość.
 - **Informacje o planie** — data obowiązywania i data wygenerowania wyświetlane pod planem.
 - **Historia nawigacji** — przyciski przeglądarki Wstecz/Dalej przełączają wcześniej otwierane plany (także między wersjami archiwalnymi).
 
@@ -97,6 +100,12 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 ---
 
 ## Historia wersji
+
+### 1.3.3 (2026-04-29)
+- Dodano automatyczną kapitalizację nazwy przedmiotu (pierwsza litera wielka) po mapowaniu i normalizacji nazw.
+- Ujednolicono szerokości wpisów lekcji w komórkach planu (równe kolumny dla równoległych grup).
+- Dodano automatyczne wstawianie pustego slotu dla brakującej grupy przy pojedynczym wpisie typu `X/N`, aby podział grup był zawsze widoczny.
+- Dla pustych slotów usunięto tło i obramowanie, dzięki czemu nie są wizualnie widoczne.
 
 ### 1.3.2 (2026-04-29)
 - Dodano obsługę mapy `window.TIMETABLE_SUBJECT_NAME_MAP`, pozwalającej podmieniać nazwy przedmiotów według reguły `stara_nazwa -> nowa_nazwa` podczas parsowania planu.

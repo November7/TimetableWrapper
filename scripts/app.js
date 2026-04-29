@@ -105,22 +105,31 @@ function normalizeSubjectName(subject) {
   return normalizedSubject.replace(/-(\d+[\/][\dA-Za-z]+)$/i, " $1");
 }
 
+function capitalizeSubjectName(subject) {
+  const normalized = normalizeSpaces(subject);
+  if (!normalized) {
+    return "";
+  }
+
+  return normalized.charAt(0).toLocaleUpperCase("pl-PL") + normalized.slice(1);
+}
+
 function mapSubjectName(subject) {
   const normalizedSubject = normalizeSubjectName(subject);
   const directMatch = SUBJECT_NAME_MAP.get(normalizedSubject);
   if (directMatch) {
-    return directMatch;
+    return capitalizeSubjectName(directMatch);
   }
 
   const groupSuffixMatch = /^(.*?)(\s+\d+[\/][\dA-Za-z]+)$/i.exec(normalizedSubject);
   if (!groupSuffixMatch) {
-    return normalizedSubject;
+    return capitalizeSubjectName(normalizedSubject);
   }
 
   const baseSubject = normalizeSpaces(groupSuffixMatch[1]);
   const groupSuffix = groupSuffixMatch[2];
   const mappedBaseSubject = SUBJECT_NAME_MAP.get(baseSubject);
-  return mappedBaseSubject ? mappedBaseSubject + groupSuffix : normalizedSubject;
+  return capitalizeSubjectName(mappedBaseSubject ? mappedBaseSubject + groupSuffix : normalizedSubject);
 }
 
 function toPlanPath(relativePath, root = getPlanRoot()) {
@@ -1076,8 +1085,9 @@ function createDesktopTable(plan, labelVisibility) {
     lesson.dayEntries.forEach((entries) => {
       const cell = document.createElement("td");
       cell.className = "day-cell";
+      const displayEntries = buildDisplayEntries(entries);
 
-      if (entries.length === 0) {
+      if (displayEntries.length === 0) {
         const empty = document.createElement("span");
         empty.className = "empty";
         empty.textContent = "-";
@@ -1085,9 +1095,14 @@ function createDesktopTable(plan, labelVisibility) {
       } else {
         const list = document.createElement("div");
         list.className = "entry-list";
+        list.style.setProperty("--entry-columns", String(Math.max(1, displayEntries.length)));
 
-        entries.forEach((entry) => {
-          list.appendChild(createEntryCard(entry, labelVisibility, false));
+        displayEntries.forEach((entry) => {
+          if (entry.isPlaceholder) {
+            list.appendChild(createEmptyEntryCard());
+          } else {
+            list.appendChild(createEntryCard(entry, labelVisibility, false));
+          }
         });
 
         cell.appendChild(list);
@@ -1125,7 +1140,10 @@ function createMobileSchedule(plan, labelVisibility) {
     panel.className = "mobile-day-panel";
     panel.hidden = true;
 
-    const lessons = plan.lessons.filter((lesson) => lesson.dayEntries[dayIndex]?.length > 0);
+    const lessons = plan.lessons.filter((lesson) => {
+      const entries = lesson.dayEntries[dayIndex] || [];
+      return buildDisplayEntries(entries).some((entry) => !entry.isPlaceholder);
+    });
     if (lessons.length === 0) {
       const empty = document.createElement("p");
       empty.className = "mobile-day-empty";
@@ -1153,8 +1171,14 @@ function createMobileSchedule(plan, labelVisibility) {
 
         const entryList = document.createElement("div");
         entryList.className = "mobile-entry-list";
-        lesson.dayEntries[dayIndex].forEach((entry) => {
-          entryList.appendChild(createEntryCard(entry, labelVisibility, true));
+        const displayEntries = buildDisplayEntries(lesson.dayEntries[dayIndex] || []);
+        entryList.style.setProperty("--entry-columns", String(Math.max(1, displayEntries.length)));
+        displayEntries.forEach((entry) => {
+          if (entry.isPlaceholder) {
+            entryList.appendChild(createEmptyEntryCard());
+          } else {
+            entryList.appendChild(createEntryCard(entry, labelVisibility, true));
+          }
         });
 
         lessonBlock.appendChild(entryList);
@@ -1197,6 +1221,65 @@ function createEntryCard(entry, labelVisibility, showLabel) {
   }
 
   return card;
+}
+
+function createEmptyEntryCard() {
+  const card = document.createElement("article");
+  card.className = "entry entry-placeholder";
+
+  const subject = document.createElement("div");
+  subject.className = "subject";
+  subject.textContent = "-";
+  card.appendChild(subject);
+
+  return card;
+}
+
+function buildDisplayEntries(entries) {
+  const safeEntries = Array.isArray(entries) ? entries.slice() : [];
+  if (safeEntries.length !== 1) {
+    return safeEntries;
+  }
+
+  const onlyEntry = safeEntries[0];
+  const fraction = readGroupFraction(onlyEntry);
+  if (!fraction || fraction.denominator < 2) {
+    return safeEntries;
+  }
+
+  const placeholder = { isPlaceholder: true };
+  if (fraction.numerator === 1) {
+    return [onlyEntry, placeholder];
+  }
+
+  return [placeholder, onlyEntry];
+}
+
+function readGroupFraction(entry) {
+  if (!entry) {
+    return null;
+  }
+
+  const candidates = [entry.subject, entry.group, entry.text];
+  for (const candidate of candidates) {
+    const match = /(?:^|\s)(\d+)\/(\d+)(?=\s|$)/.exec(String(candidate || ""));
+    if (!match) {
+      continue;
+    }
+
+    const numerator = Number.parseInt(match[1], 10);
+    const denominator = Number.parseInt(match[2], 10);
+    if (!Number.isInteger(numerator) || !Number.isInteger(denominator) || denominator <= 0) {
+      continue;
+    }
+
+    return {
+      numerator,
+      denominator
+    };
+  }
+
+  return null;
 }
 
 function getTodayPlanDayIndex(days) {

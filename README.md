@@ -39,6 +39,23 @@ Domyślna ścieżka do archiwum to folder `../stareplany` (czyli folder obok `..
 <script>window.TIMETABLE_ARCHIVE_ROOT = "../inna-sciezka-do-archiwum";</script>
 ```
 
+### Konfiguracja mapy nazw przedmiotów
+
+Można opcjonalnie podmienić nazwy przedmiotów podczas parsowania planu, przekazując mapę `stara_nazwa -> nowa_nazwa` przed dołączeniem skryptu:
+
+```html
+<script>
+    window.TIMETABLE_SUBJECT_NAME_MAP = {
+        "Jezyk polski": "J. polski",
+        "Wychowanie fizyczne": "WF",
+        "Matematyka rozszerzona": "Matematyka R"
+    };
+</script>
+```
+
+Podmiana działa na zasadzie dokładnego dopasowania po znormalizowaniu spacji.
+Jeśli nazwa przedmiotu zawiera zapis grupy w formacie `przedmiot-2/2`, aplikacja najpierw zamieni go na `przedmiot 2/2`, a potem spróbuje wykonać mapowanie całej nazwy albo samej bazowej nazwy przedmiotu z zachowaniem oznaczenia grupy.
+
 ## Funkcje
 
 - **Trzy kategorie** — oddziały, nauczyciele, sale; przełączane zakładkami.
@@ -80,6 +97,10 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 ---
 
 ## Historia wersji
+
+### 1.3.2 (2026-04-29)
+- Dodano obsługę mapy `window.TIMETABLE_SUBJECT_NAME_MAP`, pozwalającej podmieniać nazwy przedmiotów według reguły `stara_nazwa -> nowa_nazwa` podczas parsowania planu.
+- Dodano normalizację nazw z oznaczeniem grupy w formacie `przedmiot-2/2` do `przedmiot 2/2` przed mapowaniem oraz obsługę mapowania bazowej nazwy z zachowaniem sufiksu grupy.
 
 ### 1.3.1 (2026-04-24)
 - Naprawiono przewijanie wysuwanego panelu bocznego w widoku mobilnym. Lista oddziałów, nauczycieli i sal ma teraz własny pionowy scroll i pozostaje używalna przy dłuższych zestawieniach.

@@ -12,6 +12,7 @@ const state = {
   filterText: "",
   currentPlan: null,
   currentPlanSourceLabel: "Aktualny",
+  planRequestId: 0,
   planFontScale: 1,
   labelVisibility: {
     oddzialy: {
@@ -59,6 +60,7 @@ const DEFAULT_PLAN_ROOT = normalizePlanRoot(window.TIMETABLE_PLAN_ROOT || "../pl
 const DEFAULT_ARCHIVE_ROOT = normalizePlanRoot(
   window.TIMETABLE_ARCHIVE_ROOT || buildSiblingRoot(DEFAULT_PLAN_ROOT, "stareplany")
 );
+const SUBJECT_NAME_MAP = createSubjectNameMap(window.TIMETABLE_SUBJECT_NAME_MAP);
 
 function normalizePlanRoot(value) {
   const raw = String(value || "").trim();
@@ -89,6 +91,38 @@ function getPlanRoot() {
   return state.currentPlanRoot || DEFAULT_PLAN_ROOT;
 }
 
+function createSubjectNameMap(rawMap) {
+  const entries = Object.entries(rawMap || {});
+  return new Map(
+    entries
+      .map(([sourceName, targetName]) => [normalizeSpaces(sourceName), normalizeSpaces(targetName)])
+      .filter(([sourceName, targetName]) => sourceName && targetName)
+  );
+}
+
+function normalizeSubjectName(subject) {
+  const normalizedSubject = normalizeSpaces(subject);
+  return normalizedSubject.replace(/-(\d+[\/][\dA-Za-z]+)$/i, " $1");
+}
+
+function mapSubjectName(subject) {
+  const normalizedSubject = normalizeSubjectName(subject);
+  const directMatch = SUBJECT_NAME_MAP.get(normalizedSubject);
+  if (directMatch) {
+    return directMatch;
+  }
+
+  const groupSuffixMatch = /^(.*?)(\s+\d+[\/][\dA-Za-z]+)$/i.exec(normalizedSubject);
+  if (!groupSuffixMatch) {
+    return normalizedSubject;
+  }
+
+  const baseSubject = normalizeSpaces(groupSuffixMatch[1]);
+  const groupSuffix = groupSuffixMatch[2];
+  const mappedBaseSubject = SUBJECT_NAME_MAP.get(baseSubject);
+  return mappedBaseSubject ? mappedBaseSubject + groupSuffix : normalizedSubject;
+}
+
 function toPlanPath(relativePath, root = getPlanRoot()) {
   const normalizedRoot = normalizePlanRoot(root);
   const clean = String(relativePath || "")
@@ -117,7 +151,6 @@ async function init() {
 
   try {
     await loadIndex();
-    state.currentPlanSourceLabel = await buildCurrentPlanSourceLabel();
     await loadPlanSources();
     renderPlanSourceOptions();
     renderItems();
@@ -366,9 +399,26 @@ async function loadPlanSources() {
   state.planSources = sources;
 }
 
-function extractIsoDateFromText(value) {
+function updateCurrentPlanSourceLabelFromPlan(plan) {
+  if (!plan || getPlanRoot() !== DEFAULT_PLAN_ROOT) {
+    return;
+  }
 
-  // Szukamy pierwszej daty DD.MM.RRRR w całym tekście
+  const date = extractIsoDateFromText(plan.validFrom);
+  const nextLabel = date ? `Aktualny (${date} r.)` : "Aktualny";
+  if (nextLabel === state.currentPlanSourceLabel) {
+    return;
+  }
+
+  state.currentPlanSourceLabel = nextLabel;
+
+  if (state.planSources[0]?.root === DEFAULT_PLAN_ROOT) {
+    state.planSources[0].label = nextLabel;
+    renderPlanSourceOptions();
+  }
+}
+
+function extractIsoDateFromText(value) {
   const match = /(\d{1,2})[./-](\d{1,2})[./-](\d{4})/.exec(String(value || ""));
   if (!match) {
     return "";
@@ -383,45 +433,10 @@ function extractIsoDateFromText(value) {
     return "";
   }
 
-  // Formatowanie do DD.MM.RRRR
   const dd = String(day).padStart(2, "0");
   const mm = String(month).padStart(2, "0");
 
   return `od ${dd}.${mm}.${year}`;
-}
-
-
-
-function getFirstPlanItemPath() {
-  const groups = [state.categories.oddzialy, state.categories.nauczyciele, state.categories.sale];
-  for (const items of groups) {
-    if (items && items.length > 0 && items[0].path) {
-      return items[0].path;
-    }
-  }
-
-  return "";
-}
-
-async function buildCurrentPlanSourceLabel() {
-  const fallbackLabel = "Aktualny";
-  const firstPlanPath = getFirstPlanItemPath();
-  if (!firstPlanPath) {
-    return fallbackLabel;
-  }
-  
-  try {
-    const plan = await loadPlan(firstPlanPath);    
-    const date = extractIsoDateFromText(plan.validFrom);    
-    if (!date) {
-      return fallbackLabel;
-    }
-    
-    return `Aktualny (${date} r.)`;
-  } catch (error) {
-    console.warn("Nie udalo sie odczytac daty dla etykiety planu aktualnego.", error);
-    return fallbackLabel;
-  }
 }
 
 function getArchiveFolderNames(doc) {
@@ -624,6 +639,7 @@ async function selectItem(path, options) {
     historyMode: "push",
     ...options
   };
+  const requestId = ++state.planRequestId;
 
   const item = findItemByPath(path);
   if (item) {
@@ -644,10 +660,19 @@ async function selectItem(path, options) {
 
   try {
     const plan = await loadPlan(path);
+    if (requestId !== state.planRequestId) {
+      return;
+    }
+
     state.currentPlan = plan;
+    updateCurrentPlanSourceLabelFromPlan(plan);
     renderPlan(plan);
     updateNavigationState(settings.historyMode);
   } catch (error) {
+    if (requestId !== state.planRequestId) {
+      return;
+    }
+
     console.error(error);
     state.currentPlan = null;
     setStatus("Nie udalo sie odczytac wybranego planu.", true);
@@ -903,7 +928,7 @@ function parseLessonCell(cell) {
       const holder = document.createElement("div");
       holder.innerHTML = chunk;
 
-      const subject = normalizeSpaces(holder.querySelector(".p")?.textContent || "");
+      const subject = mapSubjectName(holder.querySelector(".p")?.textContent || "");
       const teacherNode = holder.querySelector("a.n");
       const groupNode = holder.querySelector("a.o, a.k");
       const roomNode = holder.querySelector("a.s");

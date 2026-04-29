@@ -48,6 +48,7 @@ Domyślna ścieżka do archiwum to folder `../stareplany` (czyli folder obok `..
 - **Motyw jasny/ciemny** — przełącznik z automatycznym wykrywaniem preferencji systemowych; wybór zapisywany lokalnie.
 - **Widok mobilny** —  poniżej 860 px tabela zostaje zastąpiona widokiem "akordeon" z podziałem na dni tygodnia. Panel boczny wysuwa się po naciśnięciu przycisku Menu.
 - **Informacje o planie** — data obowiązywania i data wygenerowania wyświetlane pod planem.
+- **Historia nawigacji** — przyciski przeglądarki Wstecz/Dalej przełączają wcześniej otwierane plany (także między wersjami archiwalnymi).
 
 ## Struktura projektu
 

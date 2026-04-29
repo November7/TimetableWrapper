@@ -52,6 +52,7 @@ const refs = {
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
+const HISTORY_STATE_VERSION = 1;
 
 const DEFAULT_PLAN_ROOT = normalizePlanRoot(window.TIMETABLE_PLAN_ROOT || "../plan");
 const DEFAULT_ARCHIVE_ROOT = normalizePlanRoot(
@@ -119,9 +120,23 @@ async function init() {
     await loadIndex();
     renderItems();
 
-    const first = state.categories[state.currentCategory][0];
+    const initialNavigation = getInitialNavigationState();
+    if (initialNavigation?.planRoot && initialNavigation.planRoot !== getPlanRoot()) {
+      state.currentPlanRoot = initialNavigation.planRoot;
+      renderPlanSourceOptions();
+      await loadIndex();
+      renderItems();
+    }
+
+    const initialPath = initialNavigation?.path;
+    const first = initialPath ? findItemByPath(initialPath) : state.categories[state.currentCategory][0];
     if (first) {
-      await selectItem(first.path);
+      if (initialNavigation?.category) {
+        state.currentCategory = initialNavigation.category;
+        applyTabState();
+        renderLabelControls();
+      }
+      await selectItem(first.path, { historyMode: "replace" });
     } else {
       setStatus("Brak pozycji w wybranej kategorii.", false);
     }
@@ -185,6 +200,10 @@ function changePlanFontScale(delta) {
 }
 
 function attachEvents() {
+  window.addEventListener("popstate", async (event) => {
+    await restoreNavigationState(event.state);
+  });
+
   if (refs.planSourceSelect) {
     refs.planSourceSelect.addEventListener("change", async (event) => {
       const target = event.target;
@@ -413,6 +432,9 @@ async function switchPlanRoot(nextRoot) {
 
   refs.search.value = "";
   setStatus("Wczytywanie listy planow...", false);
+  if (refs.planSourceSelect) {
+    refs.planSourceSelect.value = normalizedNextRoot;
+  }
 
   try {
     await loadIndex();
@@ -484,7 +506,12 @@ function renderItems() {
   });
 }
 
-async function selectItem(path) {
+async function selectItem(path, options) {
+  const settings = {
+    historyMode: "push",
+    ...options
+  };
+
   const item = findItemByPath(path);
   if (item) {
     state.currentCategory = item.category;
@@ -506,11 +533,127 @@ async function selectItem(path) {
     const plan = await loadPlan(path);
     state.currentPlan = plan;
     renderPlan(plan);
+    updateNavigationState(settings.historyMode);
   } catch (error) {
     console.error(error);
     state.currentPlan = null;
     setStatus("Nie udalo sie odczytac wybranego planu.", true);
   }
+}
+
+function updateNavigationState(mode) {
+  if (!window.history || !window.location) {
+    return;
+  }
+
+  const entry = createNavigationState();
+  if (!entry.path) {
+    return;
+  }
+
+  const currentState = readNavigationState(window.history.state);
+  const sameAsCurrent =
+    currentState &&
+    currentState.path === entry.path &&
+    currentState.planRoot === entry.planRoot &&
+    currentState.category === entry.category;
+
+  if (sameAsCurrent && mode !== "replace") {
+    return;
+  }
+
+  const url = buildNavigationUrl(entry);
+  if (mode === "replace" || sameAsCurrent) {
+    window.history.replaceState(entry, "", url);
+  } else {
+    window.history.pushState(entry, "", url);
+  }
+}
+
+function createNavigationState() {
+  return {
+    version: HISTORY_STATE_VERSION,
+    planRoot: getPlanRoot(),
+    category: state.currentCategory,
+    path: state.currentItem?.path || ""
+  };
+}
+
+function buildNavigationUrl(entry) {
+  const url = new URL(window.location.href);
+
+  url.searchParams.set("planRoot", entry.planRoot);
+  url.searchParams.set("category", entry.category);
+  url.searchParams.set("path", entry.path);
+
+  return url.pathname + url.search + url.hash;
+}
+
+function readNavigationState(rawState) {
+  if (!rawState || rawState.version !== HISTORY_STATE_VERSION) {
+    return null;
+  }
+
+  const path = String(rawState.path || "").trim();
+  if (!path) {
+    return null;
+  }
+
+  return {
+    version: HISTORY_STATE_VERSION,
+    planRoot: normalizePlanRoot(rawState.planRoot || getPlanRoot()),
+    category: String(rawState.category || "").trim() || state.currentCategory,
+    path
+  };
+}
+
+function parseNavigationStateFromUrl() {
+  const url = new URL(window.location.href);
+  const path = String(url.searchParams.get("path") || "").trim();
+  if (!path) {
+    return null;
+  }
+
+  return {
+    version: HISTORY_STATE_VERSION,
+    planRoot: normalizePlanRoot(url.searchParams.get("planRoot") || getPlanRoot()),
+    category: String(url.searchParams.get("category") || "").trim() || state.currentCategory,
+    path
+  };
+}
+
+function getInitialNavigationState() {
+  return readNavigationState(window.history.state) || parseNavigationStateFromUrl();
+}
+
+async function restoreNavigationState(rawState) {
+  const entry = readNavigationState(rawState) || parseNavigationStateFromUrl();
+  if (!entry?.path) {
+    return;
+  }
+
+  if (entry.planRoot && entry.planRoot !== getPlanRoot()) {
+    state.currentPlanRoot = entry.planRoot;
+    state.currentItem = null;
+    state.currentPlan = null;
+    state.filterText = "";
+    refs.search.value = "";
+    if (refs.planSourceSelect) {
+      refs.planSourceSelect.value = entry.planRoot;
+    }
+
+    await loadIndex();
+    renderItems();
+  }
+
+  if (entry.category && state.currentCategory !== entry.category) {
+    state.currentCategory = entry.category;
+    applyTabState();
+    renderLabelControls();
+    renderItems();
+  }
+
+  await selectItem(entry.path, { historyMode: "replace" });
 }
 
 function getLabelVisibility(category) {

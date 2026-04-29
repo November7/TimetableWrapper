@@ -53,6 +53,7 @@ const refs = {
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
+const HISTORY_STATE_VERSION = 1;
 
 const DEFAULT_PLAN_ROOT = normalizePlanRoot(window.TIMETABLE_PLAN_ROOT || "../plan");
 const DEFAULT_ARCHIVE_ROOT = normalizePlanRoot(

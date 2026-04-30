@@ -39,6 +39,12 @@ Domyślna ścieżka do archiwum to folder `../stareplany` (czyli folder obok `..
 <script>window.TIMETABLE_ARCHIVE_ROOT = "../inna-sciezka-do-archiwum";</script>
 ```
 
+Lista archiwów domyślnie ograniczona jest do 24 wpisów. Limit można zmienić:
+
+```html
+<script>window.TIMETABLE_ARCHIVE_MAX_ENTRIES = 10;</script>
+```
+
 ### Konfiguracja mapy nazw przedmiotów
 
 Można opcjonalnie podmienić nazwy przedmiotów podczas parsowania planu, przekazując mapę `stara_nazwa -> nowa_nazwa` przed dołączeniem skryptu:
@@ -101,6 +107,11 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.4 (2026-04-30)
+- Naprawiono błąd `ReferenceError: ARCHIVE_RECENT_YEARS is not defined` uniemożliwiający ładowanie listy archiwalnych planów.
+- Zmieniono filtrowanie archiwów: lista wyświetla wyłącznie plany z bieżącego roku szkolnego (od 1 września), zamiast okna ostatnich N lat kalendarzowych.
+- Dodano opcję konfiguracji limitu liczby wpisów archiwalnych przez `window.TIMETABLE_ARCHIVE_MAX_ENTRIES` (domyślnie 24).
+
 ### 1.3.3 (2026-04-29)
 - Dodano automatyczną kapitalizację nazwy przedmiotu (pierwsza litera wielka) po mapowaniu i normalizacji nazw.
 - Ujednolicono szerokości wpisów lekcji w komórkach planu (równe kolumny dla równoległych grup).
@@ -118,7 +129,7 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 - Ulepszono styl kontrolki wyboru wersji planu (`select`) tak, aby spójnie działał w motywie jasnym i ciemnym (kolory tła, obramowania, focus, lista opcji).
 - Dodano logiczny separator `Archiwalne:` po pozycji `Aktualny` w liście źródeł planu (pozycja nieaktywna, tylko informacyjna).
 - Zmieniono kolejność archiwalnych folderów planu na malejącą po dacie (`do RRRR.MM.DD`) — od najnowszych do najstarszych.
-- Ograniczono listę archiwów do ostatnich wpisów z bieżącego i poprzedniego roku (z limitem liczby pozycji).
+- Ograniczono listę archiwów do wpisów z bieżącego roku szkolnego (od 1 września) z limitem liczby pozycji (domyślnie 24, konfigurowalny przez `window.TIMETABLE_ARCHIVE_MAX_ENTRIES`).
 - Dodano dynamiczny opis pozycji aktualnego planu w selekcie: `Aktualny: (RRRR - MM - DD)` na podstawie pola `Obowiazuje od`; jeśli brak daty, pozostaje `Aktualny`.
 - Ujednolicono kolor linku do repozytorium GitHub w stopce, tak aby zawsze był taki sam jak kolor otaczającego tekstu.
 

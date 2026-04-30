@@ -55,10 +55,14 @@ const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
 const HISTORY_STATE_VERSION = 1;
+const ARCHIVE_MAX_ENTRIES = Math.max(
+  1,
+  Number.parseInt(String(window.TIMETABLE_ARCHIVE_MAX_ENTRIES || "24"), 10) || 24
+);
 
 const DEFAULT_PLAN_ROOT = normalizePlanRoot(window.TIMETABLE_PLAN_ROOT || "../plan");
 const DEFAULT_ARCHIVE_ROOT = normalizePlanRoot(
-  window.TIMETABLE_ARCHIVE_ROOT || buildSiblingRoot(DEFAULT_PLAN_ROOT, "stareplany")
+  window.TIMETABLE_ARCHIVE_ROOT || buildSiblingRoot(DEFAULT_PLAN_ROOT, "../stareplany")
 );
 const SUBJECT_NAME_MAP = createSubjectNameMap(window.TIMETABLE_SUBJECT_NAME_MAP);
 
@@ -483,8 +487,7 @@ function getArchiveFolderNames(doc) {
     folders.add(folderName);
   });
 
-  const currentYear = new Date().getFullYear();
-  const oldestYear = currentYear - (ARCHIVE_RECENT_YEARS - 1);
+  const schoolYearStartDate = getCurrentSchoolYearStartDate();
 
   return Array.from(folders)
     .map((name) => {
@@ -494,10 +497,19 @@ function getArchiveFolderNames(doc) {
         date: parsedDate
       };
     })
-    .filter((entry) => entry.date && entry.date.getFullYear() >= oldestYear)
+    .filter((entry) => entry.date && entry.date.getTime() >= schoolYearStartDate.getTime())
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, ARCHIVE_MAX_ENTRIES)
     .map((entry) => entry.name);
+}
+
+function getCurrentSchoolYearStartDate(referenceDate = new Date()) {
+  const year = referenceDate.getFullYear();
+  const monthIndex = referenceDate.getMonth();
+
+  // Rok szkolny trwa od 1 wrzesnia do 31 sierpnia.
+  const schoolYearStartYear = monthIndex >= 8 ? year : year - 1;
+  return new Date(schoolYearStartYear, 8, 1);
 }
 
 function parseArchiveFolderDate(folderName) {

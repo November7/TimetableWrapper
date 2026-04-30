@@ -107,6 +107,13 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.5 (2026-04-30)
+- Zmieniono kolorystykę motywu jasnego na szaroniebieską z czarnymi czcionkami.
+- Zmieniono kolorystykę motywu ciemnego na grafitową.
+- Zmieniono akcenty na zimny niebieski, dostosowany do obu motywów.
+- Dostosowano tło komórek lekcji w motywie ciemnym do reszty palety kolorów.
+- Link do repozytorium GitHub wyświetlany jest teraz w osobnej linii poniżej informacji o generatorze planu.
+
 ### 1.3.4 (2026-04-30)
 - Naprawiono błąd `ReferenceError: ARCHIVE_RECENT_YEARS is not defined` uniemożliwiający ładowanie listy archiwalnych planów.
 - Zmieniono filtrowanie archiwów: lista wyświetla wyłącznie plany z bieżącego roku szkolnego (od 1 września), zamiast okna ostatnich N lat kalendarzowych.

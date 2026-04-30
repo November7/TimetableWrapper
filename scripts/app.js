@@ -51,6 +51,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
+const APP_VERSION = "1.3.5";
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
@@ -1041,16 +1042,17 @@ function renderGeneratedInfo(plan) {
     // parts.push(plan.validFrom);
   }
 
-  parts.push("Wygenerowano za pomoca programu Vulcan");
+  parts.push("Wygenerowano za pomocą programu Vulcan");
   info.append(parts.join(" | "));
-  // info.append(parts.join(" | "), " | Aktualna wersja planu: ");
+
   const repo_link = document.createElement("a");
   repo_link.href = 'https://github.com/November7/TimetableWrapper';
   repo_link.target = "_blank";
   repo_link.rel = "noopener noreferrer";
-  repo_link.textContent = "GitHub repository (wrapper project)";
+  repo_link.textContent = "GitHub repository - Timetable Wrapper (version: " + APP_VERSION + ")";
 
-  info.append(" | ", repo_link);
+  const br = document.createElement("br");
+  info.append(br, repo_link);
 
 
   const link = document.createElement("a");

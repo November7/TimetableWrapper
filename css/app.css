@@ -52,7 +52,7 @@ body {
 body {
   font-family: "Segoe UI", "Trebuchet MS", Tahoma, sans-serif;
   color: var(--ink);
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
   background:
     radial-gradient(circle at 5% 10%, #c8d5e8 0%, transparent 36%),
@@ -72,7 +72,8 @@ body {
   grid-template-columns: 320px 1fr;
   align-items: start;
   gap: 20px;
-  max-width: 1600px;
+  max-width: 1920px;
+  min-width: 1600px;
   margin: 0 auto;
   padding: 20px;
   min-height: calc(100vh - 40px);

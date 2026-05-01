@@ -107,6 +107,10 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.6 (2026-05-01)
+- Dodano automatyczne skracanie długich nazw przedmiotów w komórkach planu . wyrazy są przycinane z kropką, gdy nazwa nie mieści się w limicie znaków; pełna nazwa widoczna jest po najechaniu kursorem (wersja zakomentowana do dalszych zmian).
+- Dodano reguły CSS zapobiegające wychodzeniu tekstu poza tło komórki lekcji (`overflow: hidden`, `word-break: break-word`).
+
 ### 1.3.5 (2026-04-30)
 - Zmieniono kolorystykę motywu jasnego na szaroniebieską z czarnymi czcionkami.
 - Zmieniono kolorystykę motywu ciemnego na grafitową.

@@ -51,7 +51,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.3.5";
+const APP_VERSION = "1.3.6";
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
@@ -135,6 +135,28 @@ function mapSubjectName(subject) {
   const groupSuffix = groupSuffixMatch[2];
   const mappedBaseSubject = SUBJECT_NAME_MAP.get(baseSubject);
   return capitalizeSubjectName(mappedBaseSubject ? mappedBaseSubject + groupSuffix : normalizedSubject);
+}
+
+function abbreviateSubjectName(text, maxChars = 20) {
+  // if (!text || text.length <= maxChars) {
+  //   return text;
+  // }
+
+  // const words = text.split(/\s+/);
+
+  // for (const abbrevLen of [5, 4, 3]) {
+  //   const abbreviated = words
+  //     .map(w => (w.length > abbrevLen + 1 ? w.slice(0, abbrevLen) + "." : w))
+  //     .join(" ");
+  //   if (abbreviated.length <= maxChars) {
+  //     return abbreviated;
+  //   }
+  // }
+
+  // return words
+  //   .map((w, i) => (i < words.length - 1 ? w.slice(0, 1) + "." : w.slice(0, 4) + "."))
+  //   .join(" ");
+  return text;
 }
 
 function toPlanPath(relativePath, root = getPlanRoot()) {
@@ -846,7 +868,7 @@ function renderLabelControls() {
 
   const title = document.createElement("p");
   title.className = "label-controls-title";
-  title.textContent = "Etykiety w komorkach";
+  title.textContent = "Ustawienia wyswietlania planu:";
   refs.labelControls.appendChild(title);
 
   toggles.forEach((toggle) => {
@@ -1221,7 +1243,9 @@ function createEntryCard(entry, labelVisibility, showLabel) {
 
   const subject = document.createElement("div");
   subject.className = "subject";
-  subject.textContent = entry.subject || entry.text;
+  const fullSubjectText = entry.subject || entry.text;
+  subject.textContent = abbreviateSubjectName(fullSubjectText);
+  subject.title = fullSubjectText;
   card.appendChild(subject);
 
   const detailsNode = document.createElement("div");

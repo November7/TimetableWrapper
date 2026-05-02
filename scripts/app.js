@@ -51,7 +51,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.3.6";
+const APP_VERSION = "1.3.7";
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
@@ -66,6 +66,9 @@ const DEFAULT_ARCHIVE_ROOT = normalizePlanRoot(
   window.TIMETABLE_ARCHIVE_ROOT || buildSiblingRoot(DEFAULT_PLAN_ROOT, "../stareplany")
 );
 const SUBJECT_NAME_MAP = createSubjectNameMap(window.TIMETABLE_SUBJECT_NAME_MAP);
+const SUBJECT_WORD_ABBREVIATION_MAP = createSubjectWordAbbreviationMap(
+  window.TIMETABLE_SUBJECT_WORD_ABBREVIATION_MAP
+);
 
 function normalizePlanRoot(value) {
   const raw = String(value || "").trim();
@@ -105,6 +108,18 @@ function createSubjectNameMap(rawMap) {
   );
 }
 
+function createSubjectWordAbbreviationMap(rawMap) {
+  const entries = Object.entries(rawMap || {});
+  return new Map(
+    entries
+      .map(([sourceWord, targetWord]) => [
+        normalizeSpaces(sourceWord).toLocaleLowerCase("pl-PL"),
+        normalizeSpaces(targetWord)
+      ])
+      .filter(([sourceWord, targetWord]) => sourceWord && targetWord)
+  );
+}
+
 function normalizeSubjectName(subject) {
   const normalizedSubject = normalizeSpaces(subject);
   return normalizedSubject.replace(/-(\d+[\/][\dA-Za-z]+)$/i, " $1");
@@ -123,40 +138,36 @@ function mapSubjectName(subject) {
   const normalizedSubject = normalizeSubjectName(subject);
   const directMatch = SUBJECT_NAME_MAP.get(normalizedSubject);
   if (directMatch) {
-    return capitalizeSubjectName(directMatch);
+    return directMatch;
   }
 
   const groupSuffixMatch = /^(.*?)(\s+\d+[\/][\dA-Za-z]+)$/i.exec(normalizedSubject);
   if (!groupSuffixMatch) {
-    return capitalizeSubjectName(normalizedSubject);
+    return normalizedSubject;
   }
 
   const baseSubject = normalizeSpaces(groupSuffixMatch[1]);
   const groupSuffix = groupSuffixMatch[2];
   const mappedBaseSubject = SUBJECT_NAME_MAP.get(baseSubject);
-  return capitalizeSubjectName(mappedBaseSubject ? mappedBaseSubject + groupSuffix : normalizedSubject);
+  return mappedBaseSubject ? mappedBaseSubject + groupSuffix : normalizedSubject;
 }
 
-function abbreviateSubjectName(text, maxChars = 20) {
-  // if (!text || text.length <= maxChars) {
-  //   return text;
-  // }
+function abbreviateSubjectWords(subject) {
+  const normalizedSubject = normalizeSpaces(subject);
+  if (!normalizedSubject) {
+    return "";
+  }
 
-  // const words = text.split(/\s+/);
+  return normalizedSubject.replace(/\p{L}+/gu, (word) => {
+    const abbreviation = SUBJECT_WORD_ABBREVIATION_MAP.get(word.toLocaleLowerCase("pl-PL"));
+    return abbreviation || word;
+  });
+}
 
-  // for (const abbrevLen of [5, 4, 3]) {
-  //   const abbreviated = words
-  //     .map(w => (w.length > abbrevLen + 1 ? w.slice(0, abbrevLen) + "." : w))
-  //     .join(" ");
-  //   if (abbreviated.length <= maxChars) {
-  //     return abbreviated;
-  //   }
-  // }
-
-  // return words
-  //   .map((w, i) => (i < words.length - 1 ? w.slice(0, 1) + "." : w.slice(0, 4) + "."))
-  //   .join(" ");
-  return text;
+function formatSubjectName(subject) {
+  const mapped = mapSubjectName(subject);
+  const capitalized = capitalizeSubjectName(mapped);
+  return abbreviateSubjectWords(capitalized);
 }
 
 function toPlanPath(relativePath, root = getPlanRoot()) {
@@ -972,7 +983,7 @@ function parseLessonCell(cell) {
       const holder = document.createElement("div");
       holder.innerHTML = chunk;
 
-      const subject = mapSubjectName(holder.querySelector(".p")?.textContent || "");
+      const subject = formatSubjectName(holder.querySelector(".p")?.textContent || "");
       const teacherNode = holder.querySelector("a.n");
       const groupNode = holder.querySelector("a.o, a.k");
       const roomNode = holder.querySelector("a.s");
@@ -1244,7 +1255,7 @@ function createEntryCard(entry, labelVisibility, showLabel) {
   const subject = document.createElement("div");
   subject.className = "subject";
   const fullSubjectText = entry.subject || entry.text;
-  subject.textContent = abbreviateSubjectName(fullSubjectText);
+  subject.textContent = fullSubjectText;
   subject.title = fullSubjectText;
   card.appendChild(subject);
 

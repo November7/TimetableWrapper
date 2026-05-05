@@ -123,6 +123,11 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.11 (2026-05-05)
+- Naprawiono skalowanie czcionki odnośników w komórkach planu: przyciski `A+` i `A-` zmieniają teraz rozmiar także dla linków oraz detali wpisów.
+- Poprawiono responsywność mobilną: usunięto wymuszanie zbyt szerokiego układu i ograniczono poziome przewijanie na małych ekranach.
+- Zwiększono użyteczność panelu bocznego na urządzeniach mobilnych przez poprawkę wysokości (fallback `100vh` + `100dvh`).
+
 ### 1.3.10 (2026-05-05)
 - Dodano opcjonalny przełącznik `Ukryj dni bez zajęć` w panelu ustawień planu (na dole, razem z pozostałymi opcjami).
 - Dodano filtrowanie dni bez wpisów: po włączeniu opcji ukrywane są kolumny/sekcje dni, w których nie ma żadnych zajęć.

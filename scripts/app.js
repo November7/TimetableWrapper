@@ -14,6 +14,9 @@ const state = {
   currentPlanSourceLabel: "Aktualny",
   planRequestId: 0,
   planFontScale: 1,
+  contentStickyTop: 20,
+  contentStickyTopMin: 20,
+  lastWindowScrollY: 0,
   labelVisibility: {
     oddzialy: {
       group: true,
@@ -35,6 +38,7 @@ const state = {
 
 const refs = {
   sidebar: document.getElementById("sidebar"),
+  content: document.querySelector(".content"),
   list: document.getElementById("item-list"),
   planSourceSelect: document.getElementById("plan-source-select"),
   labelControls: document.getElementById("label-controls"),
@@ -255,6 +259,86 @@ function setupPlanFontScale() {
   applyPlanFontScale(Number.isFinite(saved) ? saved : 1);
 }
 
+function isDesktopLayout() {
+  return window.matchMedia("(min-width: 861px)").matches;
+}
+
+function getContentStickyTopLimit() {
+  return window.matchMedia("(max-width: 1024px)").matches ? 12 : 20;
+}
+
+function applyContentStickyTop(top) {
+  if (!refs.content) {
+    return;
+  }
+
+  refs.content.style.setProperty("--content-sticky-top", `${top}px`);
+}
+
+function refreshContentStickyBounds(resetToTop) {
+  if (!refs.content) {
+    return;
+  }
+
+  state.lastWindowScrollY = window.scrollY;
+
+  if (!isDesktopLayout()) {
+    state.contentStickyTop = getContentStickyTopLimit();
+    state.contentStickyTopMin = state.contentStickyTop;
+    applyContentStickyTop(state.contentStickyTop);
+    return;
+  }
+
+  const topLimit = getContentStickyTopLimit();
+  const contentHeight = refs.content.offsetHeight;
+  const viewportHeight = window.innerHeight;
+  const minTop = Math.min(topLimit, viewportHeight - topLimit - contentHeight);
+
+  state.contentStickyTopMin = minTop;
+
+  if (resetToTop) {
+    state.contentStickyTop = topLimit;
+  } else {
+    state.contentStickyTop = Math.max(
+      minTop,
+      Math.min(topLimit, state.contentStickyTop)
+    );
+  }
+
+  applyContentStickyTop(state.contentStickyTop);
+}
+
+function handleWindowScrollForContentSticky() {
+  if (!refs.content) {
+    return;
+  }
+
+  const currentScrollY = window.scrollY;
+  const delta = currentScrollY - state.lastWindowScrollY;
+  state.lastWindowScrollY = currentScrollY;
+
+  if (!isDesktopLayout()) {
+    return;
+  }
+
+  if (delta === 0) {
+    return;
+  }
+
+  const topLimit = getContentStickyTopLimit();
+  const nextTop = Math.max(
+    state.contentStickyTopMin,
+    Math.min(topLimit, state.contentStickyTop - delta)
+  );
+
+  if (nextTop === state.contentStickyTop) {
+    return;
+  }
+
+  state.contentStickyTop = nextTop;
+  applyContentStickyTop(nextTop);
+}
+
 function clampPlanFontScale(scale) {
   return Math.max(FONT_SCALE_MIN, Math.min(FONT_SCALE_MAX, scale));
 }
@@ -266,6 +350,7 @@ function applyPlanFontScale(scale) {
   document.documentElement.style.setProperty("--plan-font-scale", String(normalized));
   localStorage.setItem("planFontScale", String(normalized));
   updateFontButtonsState();
+  refreshContentStickyBounds(false);
 }
 
 function updateFontButtonsState() {
@@ -285,6 +370,11 @@ function attachEvents() {
   window.addEventListener("popstate", async (event) => {
     await restoreNavigationState(event.state);
   });
+
+  window.addEventListener("scroll", handleWindowScrollForContentSticky, { passive: true });
+  window.addEventListener("resize", () => {
+    refreshContentStickyBounds(false);
+  }, { passive: true });
 
   if (refs.planSourceSelect) {
     refs.planSourceSelect.addEventListener("change", async (event) => {
@@ -1059,6 +1149,8 @@ function renderPlan(plan) {
   if (mobileSchedule.activeDayIndex >= 0) {
     setActiveMobileDay(mobileSchedule.container, mobileSchedule.activeDayIndex, "auto");
   }
+
+  refreshContentStickyBounds(false);
 }
 
 function renderGeneratedInfo(plan) {

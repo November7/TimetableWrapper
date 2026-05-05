@@ -208,6 +208,8 @@ body {
 }
 
 .toggle-line input {
+  margin: 0;
+  flex: 0 0 auto;
   accent-color: var(--accent);
 }
 
@@ -270,6 +272,19 @@ body {
   top: var(--content-sticky-top);
   align-self: start;
   overflow: visible;
+}
+
+:root[data-panel-scroll-mode="separate"] .content {
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+:root[data-panel-scroll-mode="separate"] .content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .content-header {
@@ -643,6 +658,10 @@ body {
 
   .content {
     top: 12px;
+  }
+
+  :root[data-panel-scroll-mode="separate"] .content {
+    max-height: calc(100vh - 24px);
   }
 }
 

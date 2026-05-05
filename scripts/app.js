@@ -14,6 +14,9 @@ const state = {
   currentPlanSourceLabel: "Aktualny",
   planRequestId: 0,
   planFontScale: 1,
+  separatePanelScroll: false,
+  contentWheelTarget: null,
+  contentWheelRafId: 0,
   contentStickyTop: 20,
   contentStickyTopMin: 20,
   lastWindowScrollY: 0,
@@ -55,10 +58,11 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.3.7";
+const APP_VERSION = "1.3.8";
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
+const PANEL_SCROLL_MODE_STORAGE_KEY = "panelScrollMode";
 const HISTORY_STATE_VERSION = 1;
 const ARCHIVE_MAX_ENTRIES = Math.max(
   1,
@@ -195,6 +199,7 @@ function toPlanPath(relativePath, root = getPlanRoot()) {
 async function init() {
   setupTheme();
   setupPlanFontScale();
+  setupPanelScrollMode();
   attachEvents();
   renderLabelControls();
   state.currentPlanRoot = DEFAULT_PLAN_ROOT;
@@ -259,6 +264,83 @@ function setupPlanFontScale() {
   applyPlanFontScale(Number.isFinite(saved) ? saved : 1);
 }
 
+function setupPanelScrollMode() {
+  const savedMode = String(localStorage.getItem(PANEL_SCROLL_MODE_STORAGE_KEY) || "linked");
+  applyPanelScrollMode(savedMode === "separate", { persist: false });
+}
+
+function applyPanelScrollMode(enabled, options) {
+  const settings = {
+    persist: true,
+    ...options
+  };
+
+  state.separatePanelScroll = Boolean(enabled);
+  const mode = state.separatePanelScroll ? "separate" : "linked";
+
+  document.documentElement.setAttribute("data-panel-scroll-mode", mode);
+
+  const separateScrollToggle = document.getElementById("separate-scroll-toggle");
+  if (separateScrollToggle instanceof HTMLInputElement) {
+    separateScrollToggle.checked = state.separatePanelScroll;
+  }
+
+  if (settings.persist) {
+    localStorage.setItem(PANEL_SCROLL_MODE_STORAGE_KEY, mode);
+  }
+
+  stopContentWheelAnimation();
+
+  state.lastWindowScrollY = window.scrollY;
+  refreshContentStickyBounds(true);
+}
+
+function stopContentWheelAnimation() {
+  if (state.contentWheelRafId) {
+    cancelAnimationFrame(state.contentWheelRafId);
+    state.contentWheelRafId = 0;
+  }
+
+  state.contentWheelTarget = null;
+}
+
+function enqueueSmoothContentScroll(deltaY) {
+  if (!refs.content) {
+    return;
+  }
+
+  const maxScroll = Math.max(0, refs.content.scrollHeight - refs.content.clientHeight);
+  if (maxScroll <= 0) {
+    return;
+  }
+
+  const baseTarget = state.contentWheelTarget ?? refs.content.scrollTop;
+  state.contentWheelTarget = Math.max(0, Math.min(maxScroll, baseTarget + deltaY));
+
+  if (state.contentWheelRafId) {
+    return;
+  }
+
+  const step = () => {
+    if (!refs.content || state.contentWheelTarget == null) {
+      stopContentWheelAnimation();
+      return;
+    }
+
+    const diff = state.contentWheelTarget - refs.content.scrollTop;
+    if (Math.abs(diff) < 0.5) {
+      refs.content.scrollTop = state.contentWheelTarget;
+      stopContentWheelAnimation();
+      return;
+    }
+
+    refs.content.scrollTop += diff * 0.22;
+    state.contentWheelRafId = requestAnimationFrame(step);
+  };
+
+  state.contentWheelRafId = requestAnimationFrame(step);
+}
+
 function isDesktopLayout() {
   return window.matchMedia("(min-width: 861px)").matches;
 }
@@ -286,6 +368,14 @@ function refreshContentStickyBounds(resetToTop) {
     state.contentStickyTop = getContentStickyTopLimit();
     state.contentStickyTopMin = state.contentStickyTop;
     applyContentStickyTop(state.contentStickyTop);
+    return;
+  }
+
+  if (state.separatePanelScroll) {
+    const topLimit = getContentStickyTopLimit();
+    state.contentStickyTopMin = topLimit;
+    state.contentStickyTop = topLimit;
+    applyContentStickyTop(topLimit);
     return;
   }
 
@@ -318,6 +408,10 @@ function handleWindowScrollForContentSticky() {
   state.lastWindowScrollY = currentScrollY;
 
   if (!isDesktopLayout()) {
+    return;
+  }
+
+  if (state.separatePanelScroll) {
     return;
   }
 
@@ -375,6 +469,17 @@ function attachEvents() {
   window.addEventListener("resize", () => {
     refreshContentStickyBounds(false);
   }, { passive: true });
+
+  if (refs.content) {
+    refs.content.addEventListener("wheel", (event) => {
+      if (!state.separatePanelScroll || !isDesktopLayout()) {
+        return;
+      }
+
+      event.preventDefault();
+      enqueueSmoothContentScroll(event.deltaY);
+    }, { passive: false });
+  }
 
   if (refs.planSourceSelect) {
     refs.planSourceSelect.addEventListener("change", async (event) => {
@@ -972,32 +1077,77 @@ function renderLabelControls() {
   title.textContent = "Ustawienia wyswietlania planu:";
   refs.labelControls.appendChild(title);
 
+  createScrollModeToggle();
+
   toggles.forEach((toggle) => {
     createLabelToggle(toggle.key, toggle.text, visibility[toggle.key]);
   });
 }
 
-function createLabelToggle(key, text, checked) {
-  const wrapper = document.createElement("label");
-  wrapper.className = "toggle-line";
-
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.checked = checked;
-  input.addEventListener("change", () => {
-    const visibility = getLabelVisibility(state.currentCategory);
-    visibility[key] = input.checked;
-    if (state.currentPlan) {
-      renderPlan(state.currentPlan);
+function createScrollModeToggle() {
+  const toggle = createToggleLine({
+    id: "separate-scroll-toggle",
+    text: "Przewijaj panele osobno",
+    checked: state.separatePanelScroll,
+    onChange: (checked) => {
+      applyPanelScrollMode(checked);
     }
   });
 
+  refs.labelControls.appendChild(toggle);
+}
+
+function createLabelToggle(key, text, checked) {
+  const toggleId = `label-toggle-${state.currentCategory}-${key}`;
+  const toggle = createToggleLine({
+    id: toggleId,
+    text,
+    checked,
+    onChange: (isChecked) => {
+    const visibility = getLabelVisibility(state.currentCategory);
+      visibility[key] = isChecked;
+    if (state.currentPlan) {
+      renderPlan(state.currentPlan);
+    }
+    }
+  });
+
+  refs.labelControls.appendChild(toggle);
+}
+
+function createToggleLine(options) {
+  const settings = {
+    id: "",
+    text: "",
+    checked: false,
+    onChange: () => {},
+    className: "toggle-line",
+    ...options
+  };
+
+  const wrapper = document.createElement("label");
+  wrapper.className = settings.className;
+
+  if (settings.id) {
+    wrapper.setAttribute("for", settings.id);
+  }
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.checked = settings.checked;
+  if (settings.id) {
+    input.id = settings.id;
+  }
+  input.addEventListener("change", () => {
+    settings.onChange(input.checked);
+  });
+
   const caption = document.createElement("span");
-  caption.textContent = text;
+  caption.textContent = settings.text;
 
   wrapper.appendChild(input);
   wrapper.appendChild(caption);
-  refs.labelControls.appendChild(wrapper);
+  return wrapper;
 }
 
 async function loadPlan(path) {

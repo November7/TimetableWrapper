@@ -123,6 +123,12 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.8 (2026-05-05)
+- Dodano przełącznik trybu przewijania `Przewijaj panele osobno` do panelu ustawień planu (razem z pozostałymi checkboxami widoczności linków).
+- Ujednolicono generowanie checkboxów w panelu ustawień: wszystkie kontrolki są tworzone tym samym mechanizmem i mają spójne `id/for` oraz układ.
+- W trybie `Przewijaj panele osobno` ukryto pasek przewijania prawego panelu planu przy zachowaniu pełnej obsługi przewijania.
+- Wygładzono przewijanie prawego panelu w trybie `Przewijaj panele osobno` (animacja oparta o `requestAnimationFrame`).
+
 ### 1.3.7 (2026-05-02)
 - Dodano konfigurowalną mapę `window.TIMETABLE_SUBJECT_WORD_ABBREVIATION_MAP` do zamiany wyrazów na skróty (np. `komputerowych -> komp.`).
 - Uporządkowano pipeline przetwarzania nazwy przedmiotu do stałej kolejności: mapowanie nazwy -> kapitalizacja -> mapowanie wyrazów na skróty.

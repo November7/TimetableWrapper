@@ -51,6 +51,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
+const APP_VERSION = "1.3.7";
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
@@ -65,6 +66,9 @@ const DEFAULT_ARCHIVE_ROOT = normalizePlanRoot(
   window.TIMETABLE_ARCHIVE_ROOT || buildSiblingRoot(DEFAULT_PLAN_ROOT, "../stareplany")
 );
 const SUBJECT_NAME_MAP = createSubjectNameMap(window.TIMETABLE_SUBJECT_NAME_MAP);
+const SUBJECT_WORD_ABBREVIATION_MAP = createSubjectWordAbbreviationMap(
+  window.TIMETABLE_SUBJECT_WORD_ABBREVIATION_MAP
+);
 
 function normalizePlanRoot(value) {
   const raw = String(value || "").trim();
@@ -104,6 +108,18 @@ function createSubjectNameMap(rawMap) {
   );
 }
 
+function createSubjectWordAbbreviationMap(rawMap) {
+  const entries = Object.entries(rawMap || {});
+  return new Map(
+    entries
+      .map(([sourceWord, targetWord]) => [
+        normalizeSpaces(sourceWord).toLocaleLowerCase("pl-PL"),
+        normalizeSpaces(targetWord)
+      ])
+      .filter(([sourceWord, targetWord]) => sourceWord && targetWord)
+  );
+}
+
 function normalizeSubjectName(subject) {
   const normalizedSubject = normalizeSpaces(subject);
   return normalizedSubject.replace(/-(\d+[\/][\dA-Za-z]+)$/i, " $1");
@@ -122,18 +138,36 @@ function mapSubjectName(subject) {
   const normalizedSubject = normalizeSubjectName(subject);
   const directMatch = SUBJECT_NAME_MAP.get(normalizedSubject);
   if (directMatch) {
-    return capitalizeSubjectName(directMatch);
+    return directMatch;
   }
 
   const groupSuffixMatch = /^(.*?)(\s+\d+[\/][\dA-Za-z]+)$/i.exec(normalizedSubject);
   if (!groupSuffixMatch) {
-    return capitalizeSubjectName(normalizedSubject);
+    return normalizedSubject;
   }
 
   const baseSubject = normalizeSpaces(groupSuffixMatch[1]);
   const groupSuffix = groupSuffixMatch[2];
   const mappedBaseSubject = SUBJECT_NAME_MAP.get(baseSubject);
-  return capitalizeSubjectName(mappedBaseSubject ? mappedBaseSubject + groupSuffix : normalizedSubject);
+  return mappedBaseSubject ? mappedBaseSubject + groupSuffix : normalizedSubject;
+}
+
+function abbreviateSubjectWords(subject) {
+  const normalizedSubject = normalizeSpaces(subject);
+  if (!normalizedSubject) {
+    return "";
+  }
+
+  return normalizedSubject.replace(/\p{L}+/gu, (word) => {
+    const abbreviation = SUBJECT_WORD_ABBREVIATION_MAP.get(word.toLocaleLowerCase("pl-PL"));
+    return abbreviation || word;
+  });
+}
+
+function formatSubjectName(subject) {
+  const mapped = mapSubjectName(subject);
+  const capitalized = capitalizeSubjectName(mapped);
+  return abbreviateSubjectWords(capitalized);
 }
 
 function toPlanPath(relativePath, root = getPlanRoot()) {
@@ -845,7 +879,7 @@ function renderLabelControls() {
 
   const title = document.createElement("p");
   title.className = "label-controls-title";
-  title.textContent = "Etykiety w komorkach";
+  title.textContent = "Ustawienia wyswietlania planu:";
   refs.labelControls.appendChild(title);
 
   toggles.forEach((toggle) => {
@@ -949,7 +983,7 @@ function parseLessonCell(cell) {
       const holder = document.createElement("div");
       holder.innerHTML = chunk;
 
-      const subject = mapSubjectName(holder.querySelector(".p")?.textContent || "");
+      const subject = formatSubjectName(holder.querySelector(".p")?.textContent || "");
       const teacherNode = holder.querySelector("a.n");
       const groupNode = holder.querySelector("a.o, a.k");
       const roomNode = holder.querySelector("a.s");
@@ -1041,16 +1075,17 @@ function renderGeneratedInfo(plan) {
     // parts.push(plan.validFrom);
   }
 
-  parts.push("Wygenerowano za pomoca programu Vulcan");
+  parts.push("Wygenerowano za pomocą programu Vulcan");
   info.append(parts.join(" | "));
-  // info.append(parts.join(" | "), " | Aktualna wersja planu: ");
+
   const repo_link = document.createElement("a");
   repo_link.href = 'https://github.com/November7/TimetableWrapper';
   repo_link.target = "_blank";
   repo_link.rel = "noopener noreferrer";
-  repo_link.textContent = "GitHub repository (wrapper project)";
+  repo_link.textContent = "GitHub repository - Timetable Wrapper (version: " + APP_VERSION + ")";
 
-  info.append(" | ", repo_link);
+  const br = document.createElement("br");
+  info.append(br, repo_link);
 
 
   const link = document.createElement("a");
@@ -1219,7 +1254,9 @@ function createEntryCard(entry, labelVisibility, showLabel) {
 
   const subject = document.createElement("div");
   subject.className = "subject";
-  subject.textContent = entry.subject || entry.text;
+  const fullSubjectText = entry.subject || entry.text;
+  subject.textContent = fullSubjectText;
+  subject.title = fullSubjectText;
   card.appendChild(subject);
 
   const detailsNode = document.createElement("div");

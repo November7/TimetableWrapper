@@ -15,6 +15,7 @@ const state = {
   planRequestId: 0,
   planFontScale: 1,
   separatePanelScroll: false,
+  hideEmptyDays: false,
   contentWheelTarget: null,
   contentWheelRafId: 0,
   contentStickyTop: 20,
@@ -58,11 +59,12 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.3.8";
+const APP_VERSION = "1.3.10";
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
 const PANEL_SCROLL_MODE_STORAGE_KEY = "panelScrollMode";
+const HIDE_EMPTY_DAYS_STORAGE_KEY = "hideEmptyDays";
 const HISTORY_STATE_VERSION = 1;
 const ARCHIVE_MAX_ENTRIES = Math.max(
   1,
@@ -200,6 +202,7 @@ async function init() {
   setupTheme();
   setupPlanFontScale();
   setupPanelScrollMode();
+  setupHideEmptyDaysMode();
   attachEvents();
   renderLabelControls();
   state.currentPlanRoot = DEFAULT_PLAN_ROOT;
@@ -269,6 +272,11 @@ function setupPanelScrollMode() {
   applyPanelScrollMode(savedMode === "separate", { persist: false });
 }
 
+function setupHideEmptyDaysMode() {
+  const saved = String(localStorage.getItem(HIDE_EMPTY_DAYS_STORAGE_KEY) || "false");
+  applyHideEmptyDaysMode(saved === "true", { persist: false });
+}
+
 function applyPanelScrollMode(enabled, options) {
   const settings = {
     persist: true,
@@ -293,6 +301,28 @@ function applyPanelScrollMode(enabled, options) {
 
   state.lastWindowScrollY = window.scrollY;
   refreshContentStickyBounds(true);
+}
+
+function applyHideEmptyDaysMode(enabled, options) {
+  const settings = {
+    persist: true,
+    ...options
+  };
+
+  state.hideEmptyDays = Boolean(enabled);
+
+  const hideEmptyDaysToggle = document.getElementById("hide-empty-days-toggle");
+  if (hideEmptyDaysToggle instanceof HTMLInputElement) {
+    hideEmptyDaysToggle.checked = state.hideEmptyDays;
+  }
+
+  if (settings.persist) {
+    localStorage.setItem(HIDE_EMPTY_DAYS_STORAGE_KEY, state.hideEmptyDays ? "true" : "false");
+  }
+
+  if (state.currentPlan) {
+    renderPlan(state.currentPlan);
+  }
 }
 
 function stopContentWheelAnimation() {
@@ -1077,11 +1107,12 @@ function renderLabelControls() {
   title.textContent = "Ustawienia wyswietlania planu:";
   refs.labelControls.appendChild(title);
 
-  createScrollModeToggle();
-
   toggles.forEach((toggle) => {
     createLabelToggle(toggle.key, toggle.text, visibility[toggle.key]);
   });
+
+  createScrollModeToggle();
+  createHideEmptyDaysToggle();
 }
 
 function createScrollModeToggle() {
@@ -1091,6 +1122,19 @@ function createScrollModeToggle() {
     checked: state.separatePanelScroll,
     onChange: (checked) => {
       applyPanelScrollMode(checked);
+    }
+  });
+
+  refs.labelControls.appendChild(toggle);
+}
+
+function createHideEmptyDaysToggle() {
+  const toggle = createToggleLine({
+    id: "hide-empty-days-toggle",
+    text: "Ukryj dni bez zajęć",
+    checked: state.hideEmptyDays,
+    onChange: (checked) => {
+      applyHideEmptyDaysMode(checked);
     }
   });
 
@@ -1352,6 +1396,7 @@ function renderGeneratedInfo(plan) {
 }
 
 function createDesktopTable(plan, labelVisibility) {
+  const visibleDayIndexes = getVisibleDayIndexes(plan);
 
   const table = document.createElement("table");
   table.className = "timetable";
@@ -1361,7 +1406,9 @@ function createDesktopTable(plan, labelVisibility) {
 
   headRow.appendChild(makeHeaderCell("Nr"));
   headRow.appendChild(makeHeaderCell("Godz."));
-  plan.days.forEach((day) => headRow.appendChild(makeHeaderCell(day)));
+  visibleDayIndexes.forEach((dayIndex) => {
+    headRow.appendChild(makeHeaderCell(plan.days[dayIndex] || ""));
+  });
 
   thead.appendChild(headRow);
   table.appendChild(thead);
@@ -1382,7 +1429,8 @@ function createDesktopTable(plan, labelVisibility) {
     row.appendChild(num);
     row.appendChild(time);
 
-    lesson.dayEntries.forEach((entries) => {
+    visibleDayIndexes.forEach((dayIndex) => {
+      const entries = lesson.dayEntries[dayIndex] || [];
       const cell = document.createElement("td");
       cell.className = "day-cell";
       const displayEntries = buildDisplayEntries(entries);
@@ -1422,9 +1470,12 @@ function createMobileSchedule(plan, labelVisibility) {
   const container = document.createElement("div");
   container.className = "mobile-days";
 
-  const activeDayIndex = getTodayPlanDayIndex(plan.days);
+  const visibleDayIndexes = getVisibleDayIndexes(plan);
+  const visibleDays = visibleDayIndexes.map((dayIndex) => plan.days[dayIndex] || "");
+  const activeDayIndex = getTodayPlanDayIndex(visibleDays);
 
-  plan.days.forEach((day, dayIndex) => {
+  visibleDayIndexes.forEach((sourceDayIndex, dayIndex) => {
+    const day = plan.days[sourceDayIndex] || "";
     const section = document.createElement("section");
     section.className = "mobile-day";
     section.dataset.dayIndex = String(dayIndex);
@@ -1441,13 +1492,13 @@ function createMobileSchedule(plan, labelVisibility) {
     panel.hidden = true;
 
     const lessons = plan.lessons.filter((lesson) => {
-      const entries = lesson.dayEntries[dayIndex] || [];
+      const entries = lesson.dayEntries[sourceDayIndex] || [];
       return buildDisplayEntries(entries).some((entry) => !entry.isPlaceholder);
     });
     if (lessons.length === 0) {
       const empty = document.createElement("p");
       empty.className = "mobile-day-empty";
-      empty.textContent = "Brak zajec";
+      empty.textContent = "Brak zajęć";
       panel.appendChild(empty);
     } else {
       lessons.forEach((lesson) => {
@@ -1471,7 +1522,7 @@ function createMobileSchedule(plan, labelVisibility) {
 
         const entryList = document.createElement("div");
         entryList.className = "mobile-entry-list";
-        const displayEntries = buildDisplayEntries(lesson.dayEntries[dayIndex] || []);
+        const displayEntries = buildDisplayEntries(lesson.dayEntries[sourceDayIndex] || []);
         entryList.style.setProperty("--entry-columns", String(Math.max(1, displayEntries.length)));
         displayEntries.forEach((entry) => {
           if (entry.isPlaceholder) {
@@ -1499,6 +1550,24 @@ function createMobileSchedule(plan, labelVisibility) {
     container,
     activeDayIndex
   };
+}
+
+function getVisibleDayIndexes(plan) {
+  const dayCount = Array.isArray(plan?.days) ? plan.days.length : 0;
+  const indexes = Array.from({ length: dayCount }, (_, index) => index);
+
+  if (!state.hideEmptyDays) {
+    return indexes;
+  }
+
+  const visible = indexes.filter((dayIndex) => {
+    return plan.lessons.some((lesson) => {
+      const entries = lesson.dayEntries[dayIndex] || [];
+      return entries.length > 0;
+    });
+  });
+
+  return visible.length > 0 ? visible : indexes;
 }
 
 function createEntryCard(entry, labelVisibility, showLabel) {

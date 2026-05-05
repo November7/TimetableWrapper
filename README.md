@@ -123,6 +123,12 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.10 (2026-05-05)
+- Dodano opcjonalny przełącznik `Ukryj dni bez zajęć` w panelu ustawień planu (na dole, razem z pozostałymi opcjami).
+- Dodano filtrowanie dni bez wpisów: po włączeniu opcji ukrywane są kolumny/sekcje dni, w których nie ma żadnych zajęć.
+- Ustawienie ukrywania pustych dni jest zapisywane lokalnie i przywracane przy kolejnym uruchomieniu.
+- Rozszerzono obsługę komórek komentarzy w planie: gdy brak standardowego znacznika `.p`, treść komentarza jest parsowana jako nazwa przedmiotu.
+
 ### 1.3.8 (2026-05-05)
 - Dodano przełącznik trybu przewijania `Przewijaj panele osobno` do panelu ustawień planu (razem z pozostałymi checkboxami widoczności linków).
 - Ujednolicono generowanie checkboxów w panelu ustawień: wszystkie kontrolki są tworzone tym samym mechanizmem i mają spójne `id/for` oraz układ.

@@ -1204,6 +1204,10 @@ async function loadPlan(path) {
   };
 }
 
+function parseCommentText(text) {
+  return formatSubjectName(text);
+}
+
 function parseLessonCell(cell) {
   const html = String(cell.innerHTML || "")
     .replace(/&nbsp;/gi, " ")
@@ -1223,15 +1227,21 @@ function parseLessonCell(cell) {
       const holder = document.createElement("div");
       holder.innerHTML = chunk;
 
-      const subject = formatSubjectName(holder.querySelector(".p")?.textContent || "");
-      const teacherNode = holder.querySelector("a.n");
-      const groupNode = holder.querySelector("a.o, a.k");
-      const roomNode = holder.querySelector("a.s");
+      const subjectNode = holder.querySelector(".p");
+      const isComment = !subjectNode;
+
+      const subject = isComment
+        ? parseCommentText(holder.textContent || "")
+        : formatSubjectName(subjectNode.textContent || "");
+
+      const teacherNode = isComment ? null : holder.querySelector("a.n");
+      const groupNode = isComment ? null : holder.querySelector("a.o, a.k");
+      const roomNode = isComment ? null : holder.querySelector("a.s");
 
       const teacher = normalizeSpaces(teacherNode?.textContent || "");
       const group = normalizeSpaces(groupNode?.textContent || "");
       const room = normalizeSpaces(roomNode?.textContent || "");
-      const text = normalizeSpaces(holder.textContent || "");
+      const text = isComment ? subject : normalizeSpaces(holder.textContent || "");
 
       return {
         subject,
@@ -1241,7 +1251,8 @@ function parseLessonCell(cell) {
         groupLink: resolvePlanPath(groupNode?.getAttribute("href")),
         room,
         roomLink: resolvePlanPath(roomNode?.getAttribute("href")),
-        text
+        text,
+        isComment
       };
     })
     .filter((entry) => entry.text.length > 0);

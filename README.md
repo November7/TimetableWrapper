@@ -4,9 +4,9 @@ Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez p
 
 ## Wymagania
 
-- Folder z planem wygenerowany przez Vulcan (domyślnie katalog `plan` obok folderu projektu).
+- Folder z planem wygenerowanym przez Vulcan (domyślnie katalog `plan` obok folderu projektu).
 - Folder `stareplany` obok folderu `plan` (opcjonalnie) z podfolderami archiwalnych wersji planu.
-- Lokalny serwer HTTP — aplikacja korzysta z `fetch()`, który nie działa przy otwarciu pliku bezpośrednio z dysku (`file://`).
+- Lokalny serwer HTTP — aplikacja korzysta z `fetch()`, który nie działa przy otwarciu pliku bezpośrednio z dysku (`file://`) lub  publiczny serwer produkcyjny.
 
 ## Uruchomienie
 

@@ -1352,7 +1352,7 @@ function renderPlan(plan) {
   refs.schedule.appendChild(mobileSchedule.container);
 
   if (mobileSchedule.activeDayIndex >= 0) {
-    setActiveMobileDay(mobileSchedule.container, mobileSchedule.activeDayIndex, "auto");
+    setActiveMobileDay(mobileSchedule.container, mobileSchedule.activeDayIndex);
   }
 
   refreshContentStickyBounds(false);
@@ -1538,7 +1538,7 @@ function createMobileSchedule(plan, labelVisibility) {
     }
 
     button.addEventListener("click", () => {
-      setActiveMobileDay(container, dayIndex, "smooth");
+      setActiveMobileDay(container, dayIndex);
     });
 
     section.appendChild(button);
@@ -1683,7 +1683,7 @@ function normalizeDayName(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function setActiveMobileDay(container, activeDayIndex, scrollBehavior) {
+function setActiveMobileDay(container, activeDayIndex) {
   const sections = Array.from(container.querySelectorAll(".mobile-day"));
   let activeSection = null;
   let activeButton = null;
@@ -1707,18 +1707,9 @@ function setActiveMobileDay(container, activeDayIndex, scrollBehavior) {
     }
   });
 
-  if (!activeSection || !activeButton || !window.matchMedia("(max-width: 860px)").matches) {
+  if (!activeSection || !activeButton) {
     return;
   }
-
-  requestAnimationFrame(() => {
-    activeButton.focus({ preventScroll: true });
-    const top = activeSection.getBoundingClientRect().top + window.scrollY - 12;
-    window.scrollTo({
-      top: Math.max(top, 0),
-      behavior: scrollBehavior
-    });
-  });
 }
 
 function appendDetailNode(container, label, value, linkPath, isVisible, showLabel) {

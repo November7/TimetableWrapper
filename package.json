@@ -1,0 +1,28 @@
+{
+  "name": "timetablewrapper",
+  "version": "1.0.0",
+  "description": "Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.",
+  "main": "index.js",
+  "scripts": {
+    "min:js": "terser scripts/app.js -o scripts/app.min.js -c -m",
+    "min:css": "cleancss -o css/app.min.css css/app.css",
+    "min": "npm run min:js && npm run min:css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/November7/TimetableWrapper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/November7/TimetableWrapper/issues"
+  },
+  "homepage": "https://github.com/November7/TimetableWrapper#readme",
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "html-minifier-terser": "^7.2.0",
+    "terser": "^5.46.2"
+  }
+}

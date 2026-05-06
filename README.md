@@ -1,5 +1,8 @@
 # Timetable Wrapper
 
+[![Release](https://img.shields.io/github/v/release/November7/TimetableWrapper?display_name=tag)](https://github.com/November7/TimetableWrapper/releases)
+[![Last commit](https://img.shields.io/github/last-commit/November7/TimetableWrapper)](https://github.com/November7/TimetableWrapper/commits/main)
+
 Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.
 
 ## Wymagania
@@ -98,9 +101,11 @@ Przetwarzanie nazwy przedmiotu wykonywane jest w kolejności: `mapowanie nazwy` 
 TimetableWrapper/
 ├── index.html          # Główny plik aplikacji
 ├── css/
-│   └── app.css         # Style (motywy, układ, tabela, widok mobilny)
+│   ├── app.css         # Style źródłowe (motywy, układ, tabela, widok mobilny)
+│   └── app.min.css     # Style zminifikowane
 └── scripts/
-    └── app.js          # Logika aplikacji (fetch, parsowanie, renderowanie)
+    ├── app.js          # Logika aplikacji (fetch, parsowanie, renderowanie)
+    └── app.min.js      # Logika zminifikowana
 
 ../plan/                # Folder z plikami Vulcan (poza projektem)
     lista.html
@@ -122,6 +127,9 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 ---
 
 ## Historia wersji
+
+### 1.3.14 (2026-05-06)
+- Zaktualizowano dokumentację: sekcja struktury projektu uwzględnia pliki zminifikowane (`app.min.js`, `app.min.css`).
 
 ### 1.3.13 (2026-05-06)
 - Naprawiono zachowanie widoku mobilnego po rozwinięciu dnia: usunięto wymuszone przewijanie/fokus na aktywny dzień, dzięki czemu plan można swobodnie przewijać także do góry.

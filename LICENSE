@@ -1,0 +1,36 @@
+Licencja niestandardowa TimetableWrapper
+
+Copyright (c) 2026 November7
+Repozytorium: https://github.com/November7/TimetableWrapper
+
+Udziela się nieodpłatnej zgody każdej osobie, która uzyska kopię
+oprogramowania i powiązanej dokumentacji ("Oprogramowanie"), na korzystanie,
+uruchamianie i udostępnianie Oprogramowania, pod warunkiem spełnienia
+następujących warunków:
+
+1. Wymagane jest przypisanie autorstwa.
+   Każde użycie lub dystrybucja Oprogramowania musi zawierać:
+   - czytelna informacje o autorze: November7,
+   - widoczny link do oryginalnego repozytorium:
+     https://github.com/November7/TimetableWrapper.
+
+2. Zakaz istotnych modyfikacji kodu.
+   Nie wolno istotnie modyfikować, przepisywać ani tworzyć utworów zależnych
+   opartych na kluczowym kodzie Oprogramowania (w tym logice JavaScript i HTML).
+
+3. Wyjątek dla CSS i motywów.
+   Dozwolone są modyfikacje plików CSS oraz warstwy wizualnej (theme/styling),
+   o ile zmiany te nie stanowią istotnej modyfikacji głównej funkcjonalności
+   Oprogramowania.
+
+4. Obowiązek dołączenia treści licencji.
+   Powyższa informacja o prawach autorskich oraz treść niniejszej licencji musi
+   być dołączona do wszystkich kopii lub istotnych części Oprogramowania.
+
+OPROGRAMOWANIE JEST DOSTARCZANE "TAK JAK JEST", BEZ JAKIEJKOLWIEK GWARANCJI,
+WYRAZONEJ LUB DOROZUMIANEJ, W TYM MIĘDZY INNYMI GWARANCJI PRZYDATNOŚCI
+HANDLOWEJ, PRZYDATNOŚCI DO OKREŚLONEGO CELU ORAZ BRAKU NARUSZEŃ PRAW OSÓB
+TRZECICH. W ŻADNYM PRZYPADKU AUTOR LUB POSIADACZ PRAW AUTORSKICH NIE PONOSI
+ODPOWIEDZIALNOŚCI ZA JAKIEKOLWIEK ROSZCZENIA, SZKODY LUB INNĄ ODPOWIEDZIALNOŚĆ,
+NIEZALEŻNIE OD TEGO, CZY WYNIKA ONA Z UMOWY, CZYNU NIEDOZWOLONEGO LUB INNEJ
+PODSTAWY PRAWNEJ, POWSTAŁYCH W ZWIĄZKU Z OPROGRAMOWANIEM LUB JEGO UŻYTKOWANIEM.

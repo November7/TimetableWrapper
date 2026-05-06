@@ -123,6 +123,10 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.13 (2026-05-06)
+- Naprawiono zachowanie widoku mobilnego po rozwinięciu dnia: usunięto wymuszone przewijanie/fokus na aktywny dzień, dzięki czemu plan można swobodnie przewijać także do góry.
+- Dodano odstęp między belką dnia a pierwszą lekcją w mobilnym akordeonie, co poprawia czytelność sekcji dnia.
+
 ### 1.3.11 (2026-05-05)
 - Naprawiono skalowanie czcionki odnośników w komórkach planu: przyciski `A+` i `A-` zmieniają teraz rozmiar także dla linków oraz detali wpisów.
 - Poprawiono responsywność mobilną: usunięto wymuszanie zbyt szerokiego układu i ograniczono poziome przewijanie na małych ekranach.

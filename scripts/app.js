@@ -176,8 +176,8 @@ function abbreviateSubjectWords(subject) {
 
 function formatSubjectName(subject) {
   const mapped = mapSubjectName(subject);
-  const capitalized = capitalizeSubjectName(mapped);
-  return abbreviateSubjectWords(capitalized);
+  const abbreviated = abbreviateSubjectWords(mapped);
+  return capitalizeSubjectName(abbreviated);
 }
 
 function toPlanPath(relativePath, root = getPlanRoot()) {

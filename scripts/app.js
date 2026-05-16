@@ -10,6 +10,12 @@ const state = {
   currentCategory: "oddzialy",
   currentItem: null,
   filterText: "",
+  rememberCategoryFilters: false,
+  categoryFilters: {
+    oddzialy: "",
+    nauczyciele: "",
+    sale: ""
+  },
   currentPlan: null,
   currentPlanSourceLabel: "Aktualny",
   planRequestId: 0,
@@ -59,7 +65,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.3.16";
+const APP_VERSION = "1.3.17";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
@@ -69,6 +75,7 @@ const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
 const PANEL_SCROLL_MODE_STORAGE_KEY = "panelScrollMode";
 const HIDE_EMPTY_DAYS_STORAGE_KEY = "hideEmptyDays";
+const REMEMBER_CATEGORY_FILTERS_STORAGE_KEY = "rememberCategoryFilters";
 const HISTORY_STATE_VERSION = 1;
 const ARCHIVE_MAX_ENTRIES = Math.max(
   1,
@@ -208,6 +215,7 @@ async function init() {
   setupSidebarResponsiveMode();
   setupPanelScrollMode();
   setupHideEmptyDaysMode();
+  setupRememberCategoryFiltersMode();
   attachEvents();
   renderLabelControls();
   state.currentPlanRoot = DEFAULT_PLAN_ROOT;
@@ -231,7 +239,7 @@ async function init() {
     const first = initialPath ? findItemByPath(initialPath) : state.categories[state.currentCategory][0];
     if (first) {
       if (initialNavigation?.category) {
-        state.currentCategory = initialNavigation.category;
+        setCurrentCategory(initialNavigation.category);
         applyTabState();
         renderLabelControls();
       }
@@ -301,6 +309,11 @@ function setupHideEmptyDaysMode() {
   applyHideEmptyDaysMode(saved === "true", { persist: false });
 }
 
+function setupRememberCategoryFiltersMode() {
+  const saved = String(localStorage.getItem(REMEMBER_CATEGORY_FILTERS_STORAGE_KEY) || "false");
+  applyRememberCategoryFiltersMode(saved === "true", { persist: false });
+}
+
 function applyPanelScrollMode(enabled, options) {
   const settings = {
     persist: true,
@@ -346,6 +359,75 @@ function applyHideEmptyDaysMode(enabled, options) {
 
   if (state.currentPlan) {
     renderPlan(state.currentPlan);
+  }
+}
+
+function applyRememberCategoryFiltersMode(enabled, options) {
+  const settings = {
+    persist: true,
+    ...options
+  };
+
+  const nextValue = Boolean(enabled);
+  if (nextValue && !state.rememberCategoryFilters) {
+    state.categoryFilters[state.currentCategory] = state.filterText;
+  }
+
+  state.rememberCategoryFilters = nextValue;
+
+  const rememberFilterToggle = document.getElementById("remember-category-filters-toggle");
+  if (rememberFilterToggle instanceof HTMLInputElement) {
+    rememberFilterToggle.checked = state.rememberCategoryFilters;
+  }
+
+  if (settings.persist) {
+    localStorage.setItem(
+      REMEMBER_CATEGORY_FILTERS_STORAGE_KEY,
+      state.rememberCategoryFilters ? "true" : "false"
+    );
+  }
+}
+
+function setCurrentCategory(category) {
+  const nextCategory = String(category || "").trim();
+  if (!nextCategory || nextCategory === state.currentCategory) {
+    return;
+  }
+
+  if (state.rememberCategoryFilters) {
+    state.categoryFilters[state.currentCategory] = state.filterText;
+  }
+
+  state.currentCategory = nextCategory;
+
+  if (state.rememberCategoryFilters) {
+    state.filterText = state.categoryFilters[nextCategory] || "";
+    if (refs.search) {
+      refs.search.value = state.filterText;
+    }
+  }
+}
+
+function resetFilterState(options) {
+  const settings = {
+    allCategories: false,
+    ...options
+  };
+
+  state.filterText = "";
+
+  if (state.rememberCategoryFilters) {
+    if (settings.allCategories) {
+      state.categoryFilters.oddzialy = "";
+      state.categoryFilters.nauczyciele = "";
+      state.categoryFilters.sale = "";
+    } else {
+      state.categoryFilters[state.currentCategory] = "";
+    }
+  }
+
+  if (refs.search) {
+    refs.search.value = "";
   }
 }
 
@@ -574,7 +656,7 @@ function attachEvents() {
         return;
       }
 
-      state.currentCategory = category;
+      setCurrentCategory(category);
       state.currentItem = null;
       applyTabState();
       renderLabelControls();
@@ -591,6 +673,9 @@ function attachEvents() {
 
   refs.search.addEventListener("input", async (event) => {
     state.filterText = String(event.target.value || "").trim().toLowerCase();
+    if (state.rememberCategoryFilters) {
+      state.categoryFilters[state.currentCategory] = state.filterText;
+    }
     renderItems();
 
     const active = getFilteredItems().find((item) => item.path === state.currentItem?.path);
@@ -881,9 +966,7 @@ async function switchPlanRoot(nextRoot) {
   state.currentPlanRoot = normalizedNextRoot;
   state.currentItem = null;
   state.currentPlan = null;
-  state.filterText = "";
-
-  refs.search.value = "";
+  resetFilterState({ allCategories: true });
   setStatus("Wczytywanie listy planow...", false);
   if (refs.planSourceSelect) {
     refs.planSourceSelect.value = normalizedNextRoot;
@@ -968,7 +1051,7 @@ async function selectItem(path, options) {
 
   const item = findItemByPath(path);
   if (item) {
-    state.currentCategory = item.category;
+    setCurrentCategory(item.category);
     state.currentItem = item;
     applyTabState();
     renderLabelControls();
@@ -1100,8 +1183,7 @@ async function restoreNavigationState(rawState) {
     state.currentPlanRoot = entry.planRoot;
     state.currentItem = null;
     state.currentPlan = null;
-    state.filterText = "";
-    refs.search.value = "";
+    resetFilterState({ allCategories: true });
     if (refs.planSourceSelect) {
       refs.planSourceSelect.value = entry.planRoot;
     }
@@ -1111,7 +1193,7 @@ async function restoreNavigationState(rawState) {
   }
 
   if (entry.category && state.currentCategory !== entry.category) {
-    state.currentCategory = entry.category;
+    setCurrentCategory(entry.category);
     applyTabState();
     renderLabelControls();
     renderItems();
@@ -1159,6 +1241,7 @@ function renderLabelControls() {
 
   createScrollModeToggle();
   createHideEmptyDaysToggle();
+  createRememberCategoryFiltersToggle();
 }
 
 function createScrollModeToggle() {
@@ -1181,6 +1264,19 @@ function createHideEmptyDaysToggle() {
     checked: state.hideEmptyDays,
     onChange: (checked) => {
       applyHideEmptyDaysMode(checked);
+    }
+  });
+
+  refs.labelControls.appendChild(toggle);
+}
+
+function createRememberCategoryFiltersToggle() {
+  const toggle = createToggleLine({
+    id: "remember-category-filters-toggle",
+    text: "Pamietaj filtrowania w kategoriach",
+    checked: state.rememberCategoryFilters,
+    onChange: (checked) => {
+      applyRememberCategoryFiltersMode(checked);
     }
   });
 
@@ -1379,8 +1475,7 @@ async function handleLinkedPlanClick(path, event) {
     return;
   }
 
-  state.filterText = "";
-  refs.search.value = "";
+  resetFilterState();
   await selectItem(path);
 }
 

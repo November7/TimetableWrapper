@@ -128,6 +128,11 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.17 (2026-05-16)
+- Dodano opcję `Pamietaj filtrowania w kategoriach` (checkbox w panelu ustawień na dole).
+- Wprowadzono zapamiętywanie ostatniego słowa kluczowego filtrowania osobno dla kategorii oddziałów, nauczycieli i sal.
+- Przełączanie zakładek kategorii zachowuje i przywraca ostatnio użyty filtr dla danej kategorii.
+
 ### 1.3.16 (2026-05-16)
 - Zwiększono wartość zmiennej CSS `--sidebar-collapse-width` do `1000px`, aby poprawić zachowanie szerokości układu przy rozwiniętym panelu bocznym.
 

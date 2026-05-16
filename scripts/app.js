@@ -358,6 +358,21 @@ function stopContentWheelAnimation() {
   state.contentWheelTarget = null;
 }
 
+function resetPlanScrollPosition() {
+  stopContentWheelAnimation();
+
+  if (refs.content) {
+    refs.content.scrollTop = 0;
+  }
+
+  if (isDesktopLayout()) {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
+  state.lastWindowScrollY = window.scrollY;
+  refreshContentStickyBounds(true);
+}
+
 function enqueueSmoothContentScroll(deltaY) {
   if (!refs.content) {
     return;
@@ -977,6 +992,7 @@ async function selectItem(path, options) {
     state.currentPlan = plan;
     updateCurrentPlanSourceLabelFromPlan(plan);
     renderPlan(plan);
+    resetPlanScrollPosition();
     updateNavigationState(settings.historyMode);
   } catch (error) {
     if (requestId !== state.planRequestId) {

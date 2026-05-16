@@ -34,7 +34,7 @@
 
     <main class="content">
       <header class="content-header">
-        <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">Menu</button>
+        <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar" aria-label="Pokaż menu">☰</button>
         <div class="title-wrap">
           <h2 id="plan-title">Wczytywanie planu...</h2>
           <p id="plan-meta" class="meta">Trwa odczyt danych z plikow zrodlowych.</p>
@@ -57,7 +57,11 @@
       </div>
     </main>
   </div>
-  <script src="scripts/map.js"></script>   
+  <script src="scripts/map.js"></script>
+  <script>
+    window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH = 1200;
+  </script>
+
   <script src="scripts/app.min.js"></script>
 </body>
 </html>

@@ -60,6 +60,10 @@ const refs = {
 };
 
 const APP_VERSION = "1.3.15";
+const SIDEBAR_COLLAPSE_WIDTH = Math.max(
+  1,
+  Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
+);
 const FONT_SCALE_MIN = 0.8;
 const FONT_SCALE_MAX = 1.3;
 const FONT_SCALE_STEP = 0.1;
@@ -201,6 +205,7 @@ function toPlanPath(relativePath, root = getPlanRoot()) {
 async function init() {
   setupTheme();
   setupPlanFontScale();
+  setupSidebarResponsiveMode();
   setupPanelScrollMode();
   setupHideEmptyDaysMode();
   attachEvents();
@@ -265,6 +270,25 @@ function toggleTheme() {
 function setupPlanFontScale() {
   const saved = Number.parseFloat(localStorage.getItem("planFontScale") || "1");
   applyPlanFontScale(Number.isFinite(saved) ? saved : 1);
+}
+
+function isSidebarCollapsedLayout() {
+  return window.innerWidth <= SIDEBAR_COLLAPSE_WIDTH;
+}
+
+function setupSidebarResponsiveMode() {
+  document.documentElement.style.setProperty("--sidebar-collapse-width", SIDEBAR_COLLAPSE_WIDTH + "px");
+  applySidebarResponsiveMode();
+}
+
+function applySidebarResponsiveMode() {
+  const collapsed = isSidebarCollapsedLayout();
+  document.documentElement.setAttribute("data-sidebar-mode", collapsed ? "collapsed" : "expanded");
+
+  if (!collapsed) {
+    refs.sidebar.classList.remove("open");
+    refs.menuToggle.setAttribute("aria-expanded", "false");
+  }
 }
 
 function setupPanelScrollMode() {
@@ -497,12 +521,18 @@ function attachEvents() {
 
   window.addEventListener("scroll", handleWindowScrollForContentSticky, { passive: true });
   window.addEventListener("resize", () => {
+    applySidebarResponsiveMode();
     refreshContentStickyBounds(false);
   }, { passive: true });
 
   if (refs.content) {
     refs.content.addEventListener("wheel", (event) => {
       if (!state.separatePanelScroll || !isDesktopLayout()) {
+        return;
+      }
+
+      const maxScroll = Math.max(0, refs.content.scrollHeight - refs.content.clientHeight);
+      if (maxScroll <= 0) {
         return;
       }
 
@@ -579,7 +609,7 @@ function attachEvents() {
   }
 
   document.addEventListener("click", (event) => {
-    if (window.innerWidth > 860) {
+    if (!isSidebarCollapsedLayout()) {
       return;
     }
 
@@ -903,7 +933,7 @@ function renderItems() {
     button.className = state.currentItem?.path === item.path ? "active" : "";
     button.addEventListener("click", async () => {
       await selectItem(item.path);
-      if (window.innerWidth <= 860) {
+      if (isSidebarCollapsedLayout()) {
         refs.sidebar.classList.remove("open");
         refs.menuToggle.setAttribute("aria-expanded", "false");
       }

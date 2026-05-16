@@ -48,6 +48,19 @@ Lista archiwów domyślnie ograniczona jest do 24 wpisów. Limit można zmienić
 <script>window.TIMETABLE_ARCHIVE_MAX_ENTRIES = 10;</script>
 ```
 
+### Konfiguracja progu zwijania panelu bocznego
+
+Można ustawić szerokość (w pikselach), poniżej której aplikacja przełączy się na układ ze zwijanym panelem bocznym (tryb mobilny/overlay):
+
+```html
+<script>window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH = 1200;</script>
+```
+
+Ważne:
+- Skrypt konfiguracyjny dodaj przed dołączeniem `scripts/app.min.js`.
+- Domyślna wartość to `1000`.
+- Większa wartość (np. `1200`) spowoduje wcześniejsze przejście na układ ze zwijanym panelem.
+
 ### Konfiguracja mapy nazw przedmiotów
 
 Można opcjonalnie podmienić nazwy przedmiotów podczas parsowania planu, przekazując mapę `stara_nazwa -> nowa_nazwa` przed dołączeniem skryptu:

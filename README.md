@@ -128,6 +128,9 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.16 (2026-05-16)
+- Zwiększono wartość zmiennej CSS `--sidebar-collapse-width` do `1000px`, aby poprawić zachowanie szerokości układu przy rozwiniętym panelu bocznym.
+
 ### 1.3.14 (2026-05-06)
 - Zaktualizowano dokumentację: sekcja struktury projektu uwzględnia pliki zminifikowane (`app.min.js`, `app.min.css`).
 

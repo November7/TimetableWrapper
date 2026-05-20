@@ -141,6 +141,9 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.3.18 (2026-05-20)
+- Naprawiono błąd przewijania: kliknięcie linku w panelu lewym przy włączonym przewijaniu niezależnym paneli nie przewija już panelu lewego (pozostaje na tym samym miejscu).
+
 ### 1.3.17 (2026-05-16)
 - Dodano opcję `Pamietaj filtrowania w kategoriach` (checkbox w panelu ustawień na dole).
 - Wprowadzono zapamiętywanie ostatniego słowa kluczowego filtrowania osobno dla kategorii oddziałów, nauczycieli i sal.

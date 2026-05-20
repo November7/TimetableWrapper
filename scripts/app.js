@@ -10,7 +10,9 @@ const state = {
   currentCategory: "oddzialy",
   currentItem: null,
   filterText: "",
-  rememberCategoryFilters: false,
+  rememberCategoryFilters: true,
+  separatePanelScroll: true,
+  hideEmptyDays: false,
   categoryFilters: {
     oddzialy: "",
     nauczyciele: "",
@@ -20,8 +22,6 @@ const state = {
   currentPlanSourceLabel: "Aktualny",
   planRequestId: 0,
   planFontScale: 1,
-  separatePanelScroll: false,
-  hideEmptyDays: false,
   contentWheelTarget: null,
   contentWheelRafId: 0,
   contentStickyTop: 20,
@@ -31,17 +31,17 @@ const state = {
     oddzialy: {
       group: true,
       teacher: true,
-      room: false
+      room: true
     },
     nauczyciele: {
       group: true,
       teacher: true,
-      room: false
+      room: true
     },
     sale: {
       group: true,
       teacher: true,
-      room: false
+      room: true
     }
   }
 };
@@ -65,7 +65,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.3.17";
+const APP_VERSION = "1.3.18";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
@@ -300,7 +300,7 @@ function applySidebarResponsiveMode() {
 }
 
 function setupPanelScrollMode() {
-  const savedMode = String(localStorage.getItem(PANEL_SCROLL_MODE_STORAGE_KEY) || "linked");
+  const savedMode = String(localStorage.getItem(PANEL_SCROLL_MODE_STORAGE_KEY) || "separate");
   applyPanelScrollMode(savedMode === "separate", { persist: false });
 }
 
@@ -310,7 +310,7 @@ function setupHideEmptyDaysMode() {
 }
 
 function setupRememberCategoryFiltersMode() {
-  const saved = String(localStorage.getItem(REMEMBER_CATEGORY_FILTERS_STORAGE_KEY) || "false");
+  const saved = String(localStorage.getItem(REMEMBER_CATEGORY_FILTERS_STORAGE_KEY) || "true");
   applyRememberCategoryFiltersMode(saved === "true", { persist: false });
 }
 
@@ -447,7 +447,7 @@ function resetPlanScrollPosition() {
     refs.content.scrollTop = 0;
   }
 
-  if (isDesktopLayout()) {
+  if (isDesktopLayout() && !state.separatePanelScroll) {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 

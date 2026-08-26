@@ -61,11 +61,13 @@ const refs = {
   menuToggle: document.getElementById("menu-toggle"),
   fontDecrease: document.getElementById("font-decrease"),
   fontIncrease: document.getElementById("font-increase"),
+  originalPlanLink: document.getElementById("original-plan-link"),
+  printPlan: document.getElementById("print-plan"),
   themeToggle: document.getElementById("theme-toggle"),
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.3.18";
+const APP_VERSION = "1.4";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
@@ -209,6 +211,15 @@ function toPlanPath(relativePath, root = getPlanRoot()) {
   return normalizedRoot + "/" + clean;
 }
 
+function updateOriginalPlanLink() {
+  if (!refs.originalPlanLink) {
+    return;
+  }
+
+  refs.originalPlanLink.href = state.currentItem?.path || toPlanPath("lista.html");
+  refs.originalPlanLink.removeAttribute("aria-disabled");
+}
+
 async function init() {
   setupTheme();
   setupPlanFontScale();
@@ -219,6 +230,7 @@ async function init() {
   attachEvents();
   renderLabelControls();
   state.currentPlanRoot = DEFAULT_PLAN_ROOT;
+  updateOriginalPlanLink();
   setStatus("Wczytywanie listy planow...");
 
   try {
@@ -696,6 +708,12 @@ function attachEvents() {
 
   refs.themeToggle.addEventListener("click", toggleTheme);
 
+  if (refs.printPlan) {
+    refs.printPlan.addEventListener("click", () => {
+      window.print();
+    });
+  }
+
   if (refs.fontDecrease) {
     refs.fontDecrease.addEventListener("click", () => {
       changePlanFontScale(-FONT_SCALE_STEP);
@@ -966,6 +984,7 @@ async function switchPlanRoot(nextRoot) {
   state.currentPlanRoot = normalizedNextRoot;
   state.currentItem = null;
   state.currentPlan = null;
+  updateOriginalPlanLink();
   resetFilterState({ allCategories: true });
   setStatus("Wczytywanie listy planow...", false);
   if (refs.planSourceSelect) {
@@ -1062,6 +1081,8 @@ async function selectItem(path, options) {
       path
     };
   }
+
+  updateOriginalPlanLink();
 
   renderItems();
   setStatus("Wczytywanie planu...", false);
@@ -1488,6 +1509,7 @@ function renderPlan(plan) {
 
   refs.schedule.innerHTML = "";
   refs.schedule.appendChild(createDesktopTable(plan, labelVisibility));
+  refs.schedule.appendChild(createPrintTable(plan, labelVisibility));
 
   const mobileSchedule = createMobileSchedule(plan, labelVisibility);
   refs.schedule.appendChild(mobileSchedule.container);
@@ -1599,6 +1621,59 @@ function createDesktopTable(plan, labelVisibility) {
 
       row.appendChild(cell);
     });
+
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(tbody);
+  return table;
+}
+
+function createPrintTable(plan, labelVisibility) {
+  const table = document.createElement("table");
+  table.className = "print-timetable";
+
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  headRow.appendChild(makeHeaderCell("Nr"));
+
+  for (let dayIndex = 0; dayIndex < 5; dayIndex += 1) {
+    headRow.appendChild(makeHeaderCell(plan.days[dayIndex] || ""));
+  }
+
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  plan.lessons.forEach((lesson) => {
+    const row = document.createElement("tr");
+    const number = document.createElement("td");
+    number.className = "print-lesson-col";
+    number.textContent = `${lesson.number}. ${lesson.time}`;
+    row.appendChild(number);
+
+    for (let dayIndex = 0; dayIndex < 5; dayIndex += 1) {
+      const cell = document.createElement("td");
+      const displayEntries = buildDisplayEntries(lesson.dayEntries[dayIndex] || []);
+
+      if (displayEntries.length === 0) {
+        cell.textContent = "-";
+      } else {
+        const list = document.createElement("div");
+        list.className = "entry-list";
+        list.style.setProperty("--entry-columns", String(Math.max(1, displayEntries.length)));
+
+        displayEntries.forEach((entry) => {
+          if (!entry.isPlaceholder) {
+            list.appendChild(createEntryCard(entry, labelVisibility, false));
+          }
+        });
+
+        cell.appendChild(list);
+      }
+
+      row.appendChild(cell);
+    }
 
     tbody.appendChild(row);
   });

@@ -102,6 +102,7 @@ Przetwarzanie nazwy przedmiotu wykonywane jest w kolejności: `mapowanie nazwy` 
 - **Etykiety w komórkach** — przełączniki widoczności linków do nauczyciela, sali i oddziału (osobno dla każdej kategorii).
 - **Rozmiar czcionki** — przyciski A− / A+ skalują treść planu (zakres 80–130%, zapisywany lokalnie).
 - **Motyw jasny/ciemny** — przełącznik z automatycznym wykrywaniem preferencji systemowych; wybór zapisywany lokalnie.
+- **Oryginalny plan i wydruk** — ikonowe przyciski w nagłówku otwierają plik źródłowy bieżącego planu oraz drukują prawy panel bez nawigacji.
 - **Widok mobilny** —  poniżej 860 px tabela zostaje zastąpiona widokiem "akordeon" z podziałem na dni tygodnia. Panel boczny wysuwa się po naciśnięciu przycisku Menu.
 - **Podział grup w komórkach** — gdy w danej lekcji występuje tylko jedna grupa w formacie `X/N` (np. `1/2`, `2/2`, `1/3`), aplikacja automatycznie dokłada pusty slot po przeciwnej stronie, aby zachować czytelny podział. Grupa `1/N` jest po lewej, a `X/N` dla `X>1` po prawej.
 - **Równe kolumny wpisów** — wpisy lekcji w jednej komórce mają zawsze taką samą szerokość.
@@ -140,6 +141,12 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 ---
 
 ## Historia wersji
+
+### 1.4 (2026-08-26)
+- Dodano ikonowe przyciski otwierające oryginalny plik planu i drukujące aktualnie wyświetlany prawy panel.
+- Odnośnik do oryginalnego planu korzysta z aktywnego źródła, w tym skonfigurowanej ścieżki i wybranego archiwum.
+- Dodano dedykowany układ wydruku: tabela z pięcioma dniami, klasyczną siatką, ciemnym nagłówkiem oraz ciemnym tekstem.
+- Wydruk zawiera numer i zakres godzin każdej lekcji w jednej lewej kolumnie; szerokość i wysokość wierszy są dostosowane do czytelnego wydruku.
 
 ### 1.3.18 (2026-05-20)
 - Naprawiono błąd przewijania: kliknięcie linku w panelu lewym przy włączonym przewijaniu niezależnym paneli nie przewija już panelu lewego (pozostaje na tym samym miejscu).

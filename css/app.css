@@ -321,7 +321,9 @@ body {
 
 .menu-toggle,
 .theme-toggle,
-.font-toggle {
+.font-toggle,
+.header-icon-link,
+.header-icon-button {
   border: 0;
   border-radius: var(--radius);
   background: var(--panel-soft);
@@ -349,6 +351,20 @@ body {
   place-items: center;
   font-size: 1.2rem;
   justify-self: end;
+}
+
+.header-icon-link,
+.header-icon-button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .menu-toggle {
@@ -463,6 +479,10 @@ body {
   border-collapse: collapse;
   min-width: 0;
   table-layout: fixed;
+}
+
+.print-timetable {
+  display: none;
 }
 
 .timetable th,
@@ -738,5 +758,122 @@ body {
 
   .mobile-days {
     display: grid;
+  }
+}
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body,
+  .app-shell,
+  .content,
+  .schedule,
+  .timetable th,
+  .timetable td,
+  .print-timetable td,
+  .entry,
+  .label-controls {
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  .app-shell {
+    display: block;
+    min-height: 0;
+    min-width: 0;
+    max-width: none;
+    padding: 0;
+  }
+
+  .sidebar,
+  .menu-toggle,
+  .header-actions,
+  .label-controls {
+    display: none !important;
+  }
+
+  .content {
+    position: static;
+    display: block;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .content-header {
+    display: block;
+  }
+
+  .schedule {
+    display: inline-block;
+    width: 75%;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .timetable {
+    display: none !important;
+  }
+
+  .print-timetable {
+    display: table !important;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 9pt;
+  }
+
+  .print-timetable th,
+  .print-timetable td {
+    border: 1px solid #000;
+    border-radius: 0;
+    min-height: 52px;
+    padding: 8px 4px;
+    vertical-align: top;
+  }
+
+  .print-timetable th {
+    color: #fff !important;
+    background: #404040 !important;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .print-timetable .print-lesson-col {
+    width: 17%;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    font-weight: 700;
+  }
+
+  .print-timetable .entry-list {
+    gap: 0;
+  }
+
+  .print-timetable .entry {
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    padding: 2px;
+    gap: 1px;
+  }
+
+  .print-timetable td,
+  .print-timetable .subject,
+  .print-timetable .details,
+  .print-timetable .entry-links,
+  .print-timetable .entry-link,
+  .print-timetable .entry-link:visited {
+    color: #202020 !important;
+  }
+
+  .mobile-days {
+    display: none !important;
   }
 }

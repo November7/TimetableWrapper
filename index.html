@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Nowoczesny podglad planu lekcji bez ramek.">
   <title>Plan lekcji</title>
-  <link rel="stylesheet" href="css/app.min.css" type="text/css">
+  <link rel="stylesheet" href="css/app.min.css?v=1.4" type="text/css">
 </head>
 <body>
   <div class="app-shell">
@@ -44,6 +44,12 @@
             <button id="font-decrease" class="font-toggle" type="button" aria-label="Zmniejsz czcionke planu" title="Zmniejsz czcionke">A-</button>
             <button id="font-increase" class="font-toggle" type="button" aria-label="Powieksz czcionke planu" title="Powieksz czcionke">A+</button>
           </div>
+          <a id="original-plan-link" class="header-icon-link" target="_blank" rel="noopener" aria-label="Otworz oryginalny plan" title="Otworz oryginalny plan" aria-disabled="true">
+            <span aria-hidden="true">&#8599;</span>
+          </a>
+          <button id="print-plan" class="header-icon-button" type="button" aria-label="Drukuj aktualnie wyswietlony plan" title="Drukuj aktualnie wyswietlony plan">
+            <span aria-hidden="true">&#128438;</span>
+          </button>
           <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Przelacz motyw" title="Przelacz motyw">
             <span id="theme-icon" aria-hidden="true">🌙</span>
           </button>
@@ -62,6 +68,6 @@
     window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH = 1200;
   </script>
 
-  <script src="scripts/app.min.js"></script>
+  <script src="scripts/app.min.js?v=1.4"></script>
 </body>
 </html>

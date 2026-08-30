@@ -1,6 +1,6 @@
 {
   "name": "timetablewrapper",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.",
   "main": "index.js",
   "scripts": {

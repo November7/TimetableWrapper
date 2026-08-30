@@ -67,7 +67,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.4";
+const APP_VERSION = "1.4.1";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
@@ -277,7 +277,7 @@ function applyTheme(theme) {
   localStorage.setItem("theme", theme);
 
   const dark = theme === "dark";
-  refs.themeIcon.textContent = dark ? "☀" : "🌙";
+  refs.themeIcon.textContent = dark ? "☾" : "☀";
   refs.themeToggle.setAttribute("aria-label", dark ? "Przelacz na motyw jasny" : "Przelacz na motyw ciemny");
   refs.themeToggle.setAttribute("title", dark ? "Motyw jasny" : "Motyw ciemny");
 }

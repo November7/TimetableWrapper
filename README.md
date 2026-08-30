@@ -142,6 +142,11 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.4.1 (2026-08-31)
+- Ujednolicono styl przycisków w trybie ciemnym z pokrętłem przełącznika motywu (`theme-toggle-knob`).
+- Dostosowano gradient, cienie i obramowania przycisków, aby były spójne z resztą interfejsu w motywie dark.
+- Poprawiono wizualną równowagę między pokrętłem a innymi kontrolkami bez zmiany ich funkcjonalności.
+
 ### 1.4 (2026-08-26)
 - Dodano ikonowe przyciski otwierające oryginalny plik planu i drukujące aktualnie wyświetlany prawy panel.
 - Odnośnik do oryginalnego planu korzysta z aktywnego źródła, w tym skonfigurowanej ścieżki i wybranego archiwum.

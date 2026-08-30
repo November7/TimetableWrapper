@@ -849,6 +849,10 @@ body {
     min-width: 0;
   }
 
+  #print-plan {
+    display: none;
+  }
+
   .timetable {
     display: none;
   }

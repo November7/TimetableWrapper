@@ -142,6 +142,10 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.4.2 (2026-08-31)
+- Usunięto przycisk drukowania w widoku mobilnym, aby lepiej dopasować układ i ograniczyć zbędne akcje na małych ekranach.
+- Zostawił przycisk drukowania w wersji desktopowej bez wpływu na pozostałe funkcje widoku.
+
 ### 1.4.1 (2026-08-31)
 - Ujednolicono styl przycisków w trybie ciemnym z pokrętłem przełącznika motywu (`theme-toggle-knob`).
 - Dostosowano gradient, cienie i obramowania przycisków, aby były spójne z resztą interfejsu w motywie dark.

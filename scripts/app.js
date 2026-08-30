@@ -67,7 +67,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.4.1";
+const APP_VERSION = "1.4.2";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000

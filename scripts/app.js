@@ -13,6 +13,8 @@ const state = {
   rememberCategoryFilters: true,
   separatePanelScroll: true,
   hideEmptyDays: false,
+  wideTeacherGroups: false,
+  wideRoomGroups: false,
   categoryFilters: {
     oddzialy: "",
     nauczyciele: "",
@@ -67,7 +69,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.4.2";
+const APP_VERSION = "1.4.5";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
@@ -78,6 +80,8 @@ const FONT_SCALE_STEP = 0.1;
 const PANEL_SCROLL_MODE_STORAGE_KEY = "panelScrollMode";
 const HIDE_EMPTY_DAYS_STORAGE_KEY = "hideEmptyDays";
 const REMEMBER_CATEGORY_FILTERS_STORAGE_KEY = "rememberCategoryFilters";
+const WIDE_TEACHER_GROUPS_STORAGE_KEY = "wideTeacherGroups";
+const WIDE_ROOM_GROUPS_STORAGE_KEY = "wideRoomGroups";
 const HISTORY_STATE_VERSION = 1;
 const ARCHIVE_MAX_ENTRIES = Math.max(
   1,
@@ -227,6 +231,8 @@ async function init() {
   setupPanelScrollMode();
   setupHideEmptyDaysMode();
   setupRememberCategoryFiltersMode();
+  setupWideTeacherGroupsMode();
+  setupWideRoomGroupsMode();
   attachEvents();
   renderLabelControls();
   state.currentPlanRoot = DEFAULT_PLAN_ROOT;
@@ -326,6 +332,16 @@ function setupRememberCategoryFiltersMode() {
   applyRememberCategoryFiltersMode(saved === "true", { persist: false });
 }
 
+function setupWideTeacherGroupsMode() {
+  const saved = String(localStorage.getItem(WIDE_TEACHER_GROUPS_STORAGE_KEY) || "false");
+  applyWideTeacherGroupsMode(saved === "true", { persist: false });
+}
+
+function setupWideRoomGroupsMode() {
+  const saved = String(localStorage.getItem(WIDE_ROOM_GROUPS_STORAGE_KEY) || "false");
+  applyWideRoomGroupsMode(saved === "true", { persist: false });
+}
+
 function applyPanelScrollMode(enabled, options) {
   const settings = {
     persist: true,
@@ -397,6 +413,50 @@ function applyRememberCategoryFiltersMode(enabled, options) {
       REMEMBER_CATEGORY_FILTERS_STORAGE_KEY,
       state.rememberCategoryFilters ? "true" : "false"
     );
+  }
+}
+
+function applyWideTeacherGroupsMode(enabled, options) {
+  const settings = {
+    persist: true,
+    ...options
+  };
+
+  state.wideTeacherGroups = Boolean(enabled);
+
+  const wideTeacherGroupsToggle = document.getElementById("wide-teacher-groups-toggle");
+  if (wideTeacherGroupsToggle instanceof HTMLInputElement) {
+    wideTeacherGroupsToggle.checked = state.wideTeacherGroups;
+  }
+
+  if (settings.persist) {
+    localStorage.setItem(WIDE_TEACHER_GROUPS_STORAGE_KEY, state.wideTeacherGroups ? "true" : "false");
+  }
+
+  if (state.currentPlan && state.currentCategory === "nauczyciele") {
+    renderPlan(state.currentPlan);
+  }
+}
+
+function applyWideRoomGroupsMode(enabled, options) {
+  const settings = {
+    persist: true,
+    ...options
+  };
+
+  state.wideRoomGroups = Boolean(enabled);
+
+  const wideRoomGroupsToggle = document.getElementById("wide-room-groups-toggle");
+  if (wideRoomGroupsToggle instanceof HTMLInputElement) {
+    wideRoomGroupsToggle.checked = state.wideRoomGroups;
+  }
+
+  if (settings.persist) {
+    localStorage.setItem(WIDE_ROOM_GROUPS_STORAGE_KEY, state.wideRoomGroups ? "true" : "false");
+  }
+
+  if (state.currentPlan && state.currentCategory === "sale") {
+    renderPlan(state.currentPlan);
   }
 }
 
@@ -1260,6 +1320,14 @@ function renderLabelControls() {
     createLabelToggle(toggle.key, toggle.text, visibility[toggle.key]);
   });
 
+  if (state.currentCategory === "nauczyciele") {
+    createWideTeacherGroupsToggle();
+  }
+
+  if (state.currentCategory === "sale") {
+    createWideRoomGroupsToggle();
+  }
+
   createScrollModeToggle();
   createHideEmptyDaysToggle();
   createRememberCategoryFiltersToggle();
@@ -1285,6 +1353,32 @@ function createHideEmptyDaysToggle() {
     checked: state.hideEmptyDays,
     onChange: (checked) => {
       applyHideEmptyDaysMode(checked);
+    }
+  });
+
+  refs.labelControls.appendChild(toggle);
+}
+
+function createWideTeacherGroupsToggle() {
+  const toggle = createToggleLine({
+    id: "wide-teacher-groups-toggle",
+    text: "Szerokie grupy nauczyciela",
+    checked: state.wideTeacherGroups,
+    onChange: (checked) => {
+      applyWideTeacherGroupsMode(checked);
+    }
+  });
+
+  refs.labelControls.appendChild(toggle);
+}
+
+function createWideRoomGroupsToggle() {
+  const toggle = createToggleLine({
+    id: "wide-room-groups-toggle",
+    text: "Szerokie grup sali",
+    checked: state.wideRoomGroups,
+    onChange: (checked) => {
+      applyWideRoomGroupsMode(checked);
     }
   });
 
@@ -1446,7 +1540,10 @@ function parseLessonCell(cell) {
       const roomNode = isComment ? null : holder.querySelector("a.s");
 
       const teacher = normalizeSpaces(teacherNode?.textContent || "");
-      const group = normalizeSpaces(groupNode?.textContent || "");
+      const groupNumber = readAdjacentGroupNumber(groupNode);
+      const group = normalizeSpaces(
+        (groupNode?.textContent || "") + (groupNumber ? "/" + groupNumber : "")
+      );
       const room = normalizeSpaces(roomNode?.textContent || "");
       const text = isComment ? subject : normalizeSpaces(holder.textContent || "");
 
@@ -1465,6 +1562,12 @@ function parseLessonCell(cell) {
     .filter((entry) => entry.text.length > 0);
 
   return entries;
+}
+
+function readAdjacentGroupNumber(groupNode) {
+  const adjacentText = String(groupNode?.nextSibling?.textContent || "");
+  const match = /^\s*-(\d+)\/\d+[A-Za-z]*\b/.exec(adjacentText);
+  return match ? match[1] : "";
 }
 
 function resolvePlanPath(href) {
@@ -1824,7 +1927,11 @@ function createEmptyEntryCard() {
 
 function buildDisplayEntries(entries) {
   const safeEntries = Array.isArray(entries) ? entries.slice() : [];
-  if (safeEntries.length !== 1) {
+  if (
+    safeEntries.length !== 1 ||
+    (state.currentCategory === "nauczyciele" && state.wideTeacherGroups) ||
+    (state.currentCategory === "sale" && state.wideRoomGroups)
+  ) {
     return safeEntries;
   }
 
@@ -1849,7 +1956,7 @@ function readGroupFraction(entry) {
 
   const candidates = [entry.subject, entry.group, entry.text];
   for (const candidate of candidates) {
-    const match = /(?:^|\s)(\d+)\/(\d+)(?=\s|$)/.exec(String(candidate || ""));
+    const match = /(?:^|[\s-])(\d+)\/(\d+)(?=\s|$)/.exec(String(candidate || ""));
     if (!match) {
       continue;
     }

@@ -142,6 +142,12 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.4.5 (2026-08-31)
+- Dodano obsługę grup w planach nauczycieli i sal: wpisy typu `3TP-1/2` są poprawnie układane w połowach komórki.
+- Skrócono odnośniki do oddziałów dla grup z formatu `1TP-1/2` do `1TP/1`.
+- Dodano niezależne opcje `Szerokie grupy nauczyciela` i `Szerokie grup sali`, które wyświetlają pojedynczą grupę na pełnej szerokości kolumny.
+- Ułożono opcje wyświetlania planu w dwóch kolumnach na komputerach, przy zachowaniu jednej kolumny w widoku mobilnym.
+
 ### 1.4.2 (2026-08-31)
 - Usunięto przycisk drukowania w widoku mobilnym, aby lepiej dopasować układ i ograniczyć zbędne akcje na małych ekranach.
 - Zostawił przycisk drukowania w wersji desktopowej bez wpływu na pozostałe funkcje widoku.

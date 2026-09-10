@@ -320,7 +320,7 @@ body {
 
 .content-header h2 {
   margin: 0;
-  font-size: 1.45rem;
+  font-size: 1.16rem;
 }
 
 .meta {
@@ -835,10 +835,24 @@ body {
   min-width: 44px;
   height: 44px;
   line-height: 1;
+  grid-area: menu;
 }
 
 :root[data-sidebar-mode="collapsed"] .title-wrap {
   min-width: 0;
+  grid-area: title;
+}
+
+:root[data-sidebar-mode="collapsed"] .content-header {
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "title title"
+    "menu actions";
+  row-gap: 10px;
+}
+
+:root[data-sidebar-mode="collapsed"] .header-actions {
+  grid-area: actions;
 }
 
 :root[data-sidebar-mode="collapsed"] .schedule {

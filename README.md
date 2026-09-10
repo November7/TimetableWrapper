@@ -142,6 +142,10 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.4.6 (2026-09-10)
+- W trybie mobilnym informacja o wyświetlanym planie (oddział/nauczyciel/sala) przeniesiona do osobnego wiersza nagłówka, nad przyciskiem menu i pozostałymi akcjami, aby nie była przez nie zasłaniana.
+- Układ nagłówka w trybach innych niż mobilny pozostał bez zmian.
+
 ### 1.4.5 (2026-08-31)
 - Dodano obsługę grup w planach nauczycieli i sal: wpisy typu `3TP-1/2` są poprawnie układane w połowach komórki.
 - Skrócono odnośniki do oddziałów dla grup z formatu `1TP-1/2` do `1TP/1`.

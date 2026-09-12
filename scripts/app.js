@@ -13,8 +13,8 @@ const state = {
   rememberCategoryFilters: true,
   separatePanelScroll: true,
   hideEmptyDays: false,
-  wideTeacherGroups: false,
-  wideRoomGroups: false,
+  wideTeacherGroups: true,
+  wideRoomGroups: true,
   categoryFilters: {
     oddzialy: "",
     nauczyciele: "",
@@ -69,7 +69,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.4.6";
+const APP_VERSION = "1.4.7";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
@@ -333,12 +333,12 @@ function setupRememberCategoryFiltersMode() {
 }
 
 function setupWideTeacherGroupsMode() {
-  const saved = String(localStorage.getItem(WIDE_TEACHER_GROUPS_STORAGE_KEY) || "false");
+  const saved = String(localStorage.getItem(WIDE_TEACHER_GROUPS_STORAGE_KEY) || "true");
   applyWideTeacherGroupsMode(saved === "true", { persist: false });
 }
 
 function setupWideRoomGroupsMode() {
-  const saved = String(localStorage.getItem(WIDE_ROOM_GROUPS_STORAGE_KEY) || "false");
+  const saved = String(localStorage.getItem(WIDE_ROOM_GROUPS_STORAGE_KEY) || "true");
   applyWideRoomGroupsMode(saved === "true", { persist: false });
 }
 

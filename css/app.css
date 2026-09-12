@@ -652,6 +652,13 @@ body {
   background: var(--panel);
 }
 
+@media (min-width: 861px) {
+  .timetable th:nth-child(n + 3),
+  .timetable td:nth-child(n + 3) {
+    border-left: 1px solid var(--line);
+  }
+}
+
 .entry-list {
   display: grid;
   grid-template-columns: repeat(var(--entry-columns, 1), minmax(0, 1fr));

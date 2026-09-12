@@ -142,6 +142,10 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 
 ## Historia wersji
 
+### 1.4.7 (2026-09-12)
+- Dodano pionowe linie oddzielające dni tygodnia w pełnoekranowym widoku desktopowym.
+- Ustawiono szerokie grupy nauczycieli i sal jako domyślnie włączone.
+
 ### 1.4.6 (2026-09-10)
 - W trybie mobilnym informacja o wyświetlanym planie (oddział/nauczyciel/sala) przeniesiona do osobnego wiersza nagłówka, nad przyciskiem menu i pozostałymi akcjami, aby nie była przez nie zasłaniana.
 - Układ nagłówka w trybach innych niż mobilny pozostał bez zmian.

@@ -8,6 +8,7 @@ Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez p
 ## Wymagania
 
 - Folder z planem wygenerowanym przez Vulcan (domyślnie katalog `plan` obok folderu projektu).
+- Plan jest poprawnie parsowany pod warunkiem, że został wyeksportowany z zaznaczoną opcją „drzewko z lewej strony”, a pozostałe opcje eksportu pozostawiono jako domyślne.
 - Folder `stareplany` obok folderu `plan` (opcjonalnie) z podfolderami archiwalnych wersji planu.
 - Lokalny serwer HTTP — aplikacja korzysta z `fetch()`, który nie działa przy otwarciu pliku bezpośrednio z dysku (`file://`) lub  publiczny serwer produkcyjny.
 
@@ -79,6 +80,18 @@ Podmiana działa na zasadzie dokładnego dopasowania po znormalizowaniu spacji.
 Jeśli nazwa przedmiotu zawiera zapis grupy w formacie `przedmiot-2/2`, aplikacja najpierw zamieni go na `przedmiot 2/2`, a potem spróbuje wykonać mapowanie całej nazwy albo samej bazowej nazwy przedmiotu z zachowaniem oznaczenia grupy.
 Dodatkowo finalna nazwa przedmiotu jest automatycznie kapitalizowana (pierwsza litera wielka), niezależnie od mapowania.
 
+### Konfiguracja mapy wpisów międzyoddziałowych
+
+Można podmienić kody wpisów międzyoddziałowych, np. `#w1`, przekazując mapę przed dołączeniem skryptu:
+
+```html
+<script>
+    window.TIMETABLE_INTERCLASS_SUBJECT_MAP = {
+        "#w1": "wf. dz."
+    };
+</script>
+```
+
 ### Konfiguracja mapy skrótów wyrazów w nazwie przedmiotu
 
 Można opcjonalnie skracać wybrane wyrazy w nazwie przedmiotu, przekazując mapę `wyraz -> skrót` przed dołączeniem skryptu:
@@ -141,6 +154,12 @@ Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybieran
 ---
 
 ## Historia wersji
+
+### 1.4.8 (2026-09-22)
+- Dodano mapowanie kodów wpisów międzyoddziałowych, np. `#W1`, z możliwością konfiguracji przez `TIMETABLE_INTERCLASS_SUBJECT_MAP`.
+- Pomijane są fikcyjne oznaczenia grup, np. `3/3`, przy wpisach z kodem międzyoddziałowym.
+- Przywrócono mapowanie nazwy przedmiotu, np. `wf` na `Wychowanie fizyczne`, również gdy wpis zawiera opis międzyoddziałowy.
+- W widokach sal i nauczycieli obsłużono wiele oddziałów w jednym wpisie; na komputerze dostępna jest lista oddziałów w tooltipie.
 
 ### 1.4.7 (2026-09-12)
 - Dodano pionowe linie oddzielające dni tygodnia w pełnoekranowym widoku desktopowym.

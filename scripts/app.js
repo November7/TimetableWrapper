@@ -69,7 +69,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.4.7";
+const APP_VERSION = "1.4.8";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
@@ -95,6 +95,9 @@ const DEFAULT_ARCHIVE_ROOT = normalizePlanRoot(
 const SUBJECT_NAME_MAP = createSubjectNameMap(window.TIMETABLE_SUBJECT_NAME_MAP);
 const SUBJECT_WORD_ABBREVIATION_MAP = createSubjectWordAbbreviationMap(
   window.TIMETABLE_SUBJECT_WORD_ABBREVIATION_MAP
+);
+const INTERCLASS_SUBJECT_MAP = createInterclassSubjectMap(
+  window.TIMETABLE_INTERCLASS_SUBJECT_MAP
 );
 
 function normalizePlanRoot(value) {
@@ -147,6 +150,10 @@ function createSubjectWordAbbreviationMap(rawMap) {
   );
 }
 
+function createInterclassSubjectMap(rawMap) {
+  return createSubjectNameMap(rawMap);
+}
+
 function normalizeSubjectName(subject) {
   const normalizedSubject = normalizeSpaces(subject);
   return normalizedSubject.replace(/-(\d+[\/][\dA-Za-z]+)$/i, " $1");
@@ -168,6 +175,13 @@ function mapSubjectName(subject) {
     return directMatch;
   }
 
+  const prefixMatch = Array.from(SUBJECT_NAME_MAP.entries())
+    .sort(([left], [right]) => right.length - left.length)
+    .find(([sourceName]) => normalizedSubject.startsWith(sourceName + " "));
+  if (prefixMatch) {
+    return prefixMatch[1] + normalizedSubject.slice(prefixMatch[0].length);
+  }
+
   const groupSuffixMatch = /^(.*?)(\s+\d+[\/][\dA-Za-z]+)$/i.exec(normalizedSubject);
   if (!groupSuffixMatch) {
     return normalizedSubject;
@@ -177,6 +191,18 @@ function mapSubjectName(subject) {
   const groupSuffix = groupSuffixMatch[2];
   const mappedBaseSubject = SUBJECT_NAME_MAP.get(baseSubject);
   return mappedBaseSubject ? mappedBaseSubject + groupSuffix : normalizedSubject;
+}
+
+function mapInterclassSubjectName(subject) {
+  let mappedSubject = normalizeSubjectName(subject);
+  INTERCLASS_SUBJECT_MAP.forEach((targetName, sourceName) => {
+    const escapedSourceName = sourceName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    mappedSubject = mappedSubject.replace(
+      new RegExp(`(^|\\s)${escapedSourceName}(?=\\s|$)`, "gi"),
+      `$1${targetName}`
+    );
+  });
+  return mappedSubject;
 }
 
 function abbreviateSubjectWords(subject) {
@@ -192,7 +218,8 @@ function abbreviateSubjectWords(subject) {
 }
 
 function formatSubjectName(subject) {
-  const mapped = mapSubjectName(subject);
+  const interclassMapped = mapInterclassSubjectName(subject);
+  const mapped = mapSubjectName(interclassMapped);
   const abbreviated = abbreviateSubjectWords(mapped);
   return capitalizeSubjectName(abbreviated);
 }
@@ -1509,6 +1536,16 @@ function parseCommentText(text) {
   return formatSubjectName(text);
 }
 
+function getUnlinkedText(holder) {
+  const copy = holder.cloneNode(true);
+  copy.querySelectorAll("a").forEach((link) => link.remove());
+  return normalizeSpaces(copy.textContent || "");
+}
+
+function removeInterclassGroupSuffix(subject) {
+  return normalizeSpaces(subject).replace(/(?:-|\s)\d+\/\d+[A-Za-z]*(?=\s+#)/i, "");
+}
+
 function parseLessonCell(cell) {
   const html = String(cell.innerHTML || "")
     .replace(/&nbsp;/gi, " ")
@@ -1531,19 +1568,31 @@ function parseLessonCell(cell) {
       const subjectNode = holder.querySelector(".p");
       const isComment = !subjectNode;
 
+      const hasInterclassCode = !isComment && Array.from(holder.querySelectorAll(".p"))
+        .some((node) => /^\s*#/u.test(node.textContent || ""));
+      const interclassSubject = hasInterclassCode
+        ? removeInterclassGroupSuffix(getUnlinkedText(holder))
+        : "";
       const subject = isComment
         ? parseCommentText(holder.textContent || "")
-        : formatSubjectName(subjectNode.textContent || "");
+        : formatSubjectName(hasInterclassCode ? interclassSubject : subjectNode.textContent || "");
 
       const teacherNode = isComment ? null : holder.querySelector("a.n");
-      const groupNode = isComment ? null : holder.querySelector("a.o, a.k");
+      const groupNodes = isComment ? [] : Array.from(holder.querySelectorAll("a.o, a.k"));
+      const groupNode = groupNodes[0] || null;
       const roomNode = isComment ? null : holder.querySelector("a.s");
 
       const teacher = normalizeSpaces(teacherNode?.textContent || "");
-      const groupNumber = readAdjacentGroupNumber(groupNode);
-      const group = normalizeSpaces(
-        (groupNode?.textContent || "") + (groupNumber ? "/" + groupNumber : "")
-      );
+      const groups = groupNodes.map((node) => {
+        const groupNumber = readAdjacentGroupNumber(node);
+        return {
+          value: normalizeSpaces(
+            (node.textContent || "") + (groupNumber ? "/" + groupNumber : "")
+          ),
+          link: resolvePlanPath(node.getAttribute("href"))
+        };
+      });
+      const group = groups[0]?.value || "";
       const room = normalizeSpaces(roomNode?.textContent || "");
       const text = isComment ? subject : normalizeSpaces(holder.textContent || "");
 
@@ -1552,7 +1601,8 @@ function parseLessonCell(cell) {
         teacher,
         teacherLink: resolvePlanPath(teacherNode?.getAttribute("href")),
         group,
-        groupLink: resolvePlanPath(groupNode?.getAttribute("href")),
+        groupLink: groups[0]?.link || "",
+        groups,
         room,
         roomLink: resolvePlanPath(roomNode?.getAttribute("href")),
         text,
@@ -1902,7 +1952,20 @@ function createEntryCard(entry, labelVisibility, showLabel) {
 
   const detailsNode = document.createElement("div");
   detailsNode.className = "entry-links";
-  appendDetailNode(detailsNode, "Oddzial", entry.group, entry.groupLink, labelVisibility.group, showLabel);
+  const interclassGroups = getInterclassGroups(entry);
+  const groupValue = interclassGroups ? "Zajęcia międzyoddziałowe" : entry.group;
+  const groupTooltip = interclassGroups && !showLabel
+    ? interclassGroups.map((group) => group.value).join(", ")
+    : "";
+  appendDetailNode(
+    detailsNode,
+    "Oddzial",
+    groupValue,
+    interclassGroups ? "" : entry.groupLink,
+    labelVisibility.group,
+    showLabel,
+    groupTooltip
+  );
   appendDetailNode(detailsNode, "Nauczyciel", entry.teacher, entry.teacherLink, labelVisibility.teacher, showLabel);
   appendDetailNode(detailsNode, "Sala", entry.room, entry.roomLink, labelVisibility.room, showLabel);
 
@@ -1911,6 +1974,15 @@ function createEntryCard(entry, labelVisibility, showLabel) {
   }
 
   return card;
+}
+
+function getInterclassGroups(entry) {
+  if (state.currentCategory !== "nauczyciele" && state.currentCategory !== "sale") {
+    return null;
+  }
+
+  const groups = Array.isArray(entry?.groups) ? entry.groups : [];
+  return groups.length > 1 ? groups : null;
 }
 
 function createEmptyEntryCard() {
@@ -2035,13 +2107,16 @@ function setActiveMobileDay(container, activeDayIndex) {
   }
 }
 
-function appendDetailNode(container, label, value, linkPath, isVisible, showLabel) {
+function appendDetailNode(container, label, value, linkPath, isVisible, showLabel, tooltip = "") {
   if (!isVisible || !value) {
     return;
   }
 
   const line = document.createElement("span");
   line.className = "details";
+  if (tooltip) {
+    line.title = tooltip;
+  }
   if (showLabel) {
     line.append(label + ": ");
   }

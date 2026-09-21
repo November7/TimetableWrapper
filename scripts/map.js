@@ -60,6 +60,10 @@ window.TIMETABLE_SUBJECT_NAME_MAP = {
       "ckz":"Zajęcia w pracowniach CKZ",
     };
 
+    window.TIMETABLE_INTERCLASS_SUBJECT_MAP = {
+      "#W1": "dziewczyn"
+    };
+
     window.TIMETABLE_SUBJECT_WORD_ABBREVIATION_MAP = {
       "język": "j.",
       "podstawy": "pod.",

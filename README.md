@@ -14,6 +14,14 @@ Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez p
 
 ## Uruchomienie
 
+### Opcjonalne logowanie Microsoft 365 (PHP)
+
+Możesz wdrożyć **`index.html` bez logowania** albo **`index.php` z logowaniem Microsoft 365**. Na serwerze pozostaw tylko wybrany plik wejściowy. Wariant PHP ma niezależny widok aplikacji, chroni też dostęp do źródeł planu i archiwów oraz współdzieli motyw z wariantem HTML.
+
+Konfiguracja Entra ID, PHP, zależności i obowiązkowych blokad bezpośredniego dostępu do danych: **[instrukcja wdrożenia Microsoft 365](docs/microsoft-365.md)**.
+
+### Wariant publiczny HTML
+
 Uruchom serwer HTTP z katalogu **nadrzędnego** względem projektu, tak aby foldery `plan`, `stareplany` i `TimetableWrapper` były dostępne obok siebie:
 
 ```powershell

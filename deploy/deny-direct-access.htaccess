@@ -1,0 +1,3 @@
+# Copy as .htaccess into BOTH plan/ and stareplany/ in the PHP deployment.
+# This blocks HTTP access to files, not local PHP filesystem reads.
+Require all denied

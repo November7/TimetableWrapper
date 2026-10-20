@@ -1,0 +1,16 @@
+{
+  "name": "timetablewrapper/microsoft-login",
+  "description": "Optional Microsoft 365 sign-in for Timetable Wrapper",
+  "type": "project",
+  "require": {
+    "php": ">=8.2",
+    "ext-curl": "*",
+    "ext-openssl": "*",
+    "jumbojett/openid-connect-php": "^1.0"
+  },
+  "config": {
+    "vendor-dir": "auth/vendor",
+    "allow-plugins": {},
+    "sort-packages": true
+  }
+}

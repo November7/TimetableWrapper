@@ -2,3 +2,24 @@
 node_modules/
 index-test.html
 plan/
+stareplany/
+auth/config.php
+auth/config.php.*
+auth/config.*.php
+!auth/config.example.php
+auth/vendor/
+.tools/
+.test-output/
+
+# Local credentials, private keys and server exports must not be published.
+.env
+.env.*
+!.env.example
+auth.json
+*.key
+*.pem
+*.p12
+*.pfx
+*.sql
+*.sql.gz
+*.log

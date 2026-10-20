@@ -299,25 +299,15 @@ async function init() {
 }
 
 function setupTheme() {
-  const saved = localStorage.getItem("theme");
-  const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const initialTheme = saved || (preferredDark ? "dark" : "light");
-  applyTheme(initialTheme);
+  window.TimetableTheme.setup();
 }
 
 function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("theme", theme);
-
-  const dark = theme === "dark";
-  refs.themeIcon.textContent = dark ? "☾" : "☀";
-  refs.themeToggle.setAttribute("aria-label", dark ? "Przelacz na motyw jasny" : "Przelacz na motyw ciemny");
-  refs.themeToggle.setAttribute("title", dark ? "Motyw jasny" : "Motyw ciemny");
+  window.TimetableTheme.apply(theme);
 }
 
 function toggleTheme() {
-  const current = document.documentElement.getAttribute("data-theme") || "light";
-  applyTheme(current === "dark" ? "light" : "dark");
+  window.TimetableTheme.toggle();
 }
 
 function setupPlanFontScale() {
@@ -838,10 +828,19 @@ function applyTabState() {
   });
 }
 
+async function fetchPlanResource(path) {
+  const response = await fetch(path, { cache: "no-store" });
+  if (response.status === 401 && window.TIMETABLE_LOGIN_URL) {
+    window.location.replace(window.TIMETABLE_LOGIN_URL);
+    throw new Error("Sesja wygasła. Zaloguj się ponownie.");
+  }
+  return response;
+}
+
 async function loadIndex() {
   const planRoot = getPlanRoot();
   const indexPath = toPlanPath("lista.html");
-  const response = await fetch(indexPath, { cache: "no-store" });
+  const response = await fetchPlanResource(indexPath);
   if (!response.ok) {
     throw new Error("Brak dostepu do " + indexPath);
   }
@@ -885,7 +884,7 @@ async function loadPlanSources() {
   ];
 
   try {
-    const response = await fetch(archiveRoot + "/", { cache: "no-store" });
+    const response = await fetchPlanResource(archiveRoot + "/");
     if (response.ok) {
       const html = await response.text();
       const parser = new DOMParser();
@@ -1479,7 +1478,7 @@ function createToggleLine(options) {
 }
 
 async function loadPlan(path) {
-  const response = await fetch(path, { cache: "no-store" });
+  const response = await fetchPlanResource(path);
   if (!response.ok) {
     throw new Error("Brak dostepu do pliku planu: " + path);
   }

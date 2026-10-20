@@ -54,6 +54,7 @@ if ($action === 'login' || $action === 'callback') {
         http_response_code(503);
         $message = 'Logowanie jest chwilowo niedostępne. Spróbuj ponownie później.';
     } else {
+        $stage = 'callback';
         try {
             if ($action === 'login') {
                 if (!tt_csrf_valid()) tt_error(403, 'Odśwież stronę i spróbuj ponownie.');
@@ -62,30 +63,28 @@ if ($action === 'login' || $action === 'callback') {
                 $_SESSION['tt_login_started'] = time();
             } else {
                 // Check state BEFORE any token request; accept only the expected GET callback.
-                if ($_SERVER['REQUEST_METHOD'] !== 'GET'
-                    || !is_string($_GET['state'] ?? null)
-                    || !is_string($_SESSION['openid_connect_state'] ?? null)
-                    || !hash_equals($_SESSION['openid_connect_state'], $_GET['state'])
-                    || ($_SESSION['tt_login_started'] ?? 0) < time() - 600
-                    || !is_string($_GET['code'] ?? null) || isset($_GET['error'])) {
-                    throw new RuntimeException('Invalid or expired callback.');
-                }
+                tt_validate_callback($_GET, $_SERVER['REQUEST_METHOD'], $_SESSION);
                 $_REQUEST = $_GET;
             }
             $expectedNonce = (string) ($_SESSION['openid_connect_nonce'] ?? '');
+            $stage = $action === 'login' ? 'authorize' : 'token';
             $oidc = tt_oidc($config);
             if (!$oidc->authenticate() || $action !== 'callback') {
                 throw new RuntimeException('Authentication was not completed.');
             }
+            $stage = 'claims';
             $user = tt_user_from_claims($oidc->getVerifiedClaims(), $config, $expectedNonce);
-            session_regenerate_id(true);
+            $stage = 'session';
+            if (!session_regenerate_id(true)) throw new RuntimeException('TT_SESSION_SAVE');
             $_SESSION = ['tt_user' => $user, 'tt_csrf' => bin2hex(random_bytes(32))];
             tt_redirect($appUrl);
         } catch (Throwable $error) {
-            // Do not expose/log codes, tokens, secrets or provider error descriptions.
-            error_log('Timetable sign-in failed (' . get_class($error) . ').');
+            // Never expose/log raw exception messages, tokens, OAuth codes or secrets.
+            $failure = tt_auth_failure($error);
+            $reference = bin2hex(random_bytes(6));
+            error_log('Timetable sign-in failed: reference=' . $reference . ' stage=' . $stage . ' reason=' . $failure['code']);
             unset($_SESSION['tt_user'], $_SESSION['tt_login_started'], $_SESSION['openid_connect_state'], $_SESSION['openid_connect_nonce'], $_SESSION['openid_connect_code_verifier']);
-            $message = 'Nie udało się zalogować. Spróbuj ponownie, używając uprawnionego konta organizacji.';
+            $message = $failure['message'] . ' Kod: ' . $failure['code'] . '. Numer zgłoszenia: ' . $reference . '.';
             http_response_code(401);
         }
     }

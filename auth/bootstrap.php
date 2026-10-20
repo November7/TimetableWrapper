@@ -77,6 +77,64 @@ function tt_has_access(?array $config): bool
         && ($config['required_role'] === '' || in_array($config['required_role'], $user['roles'] ?? [], true));
 }
 
+/** Validate the callback before exchanging a code; never report query values. */
+function tt_validate_callback(array $query, string $method, array $session): void
+{
+    if ($method !== 'GET' || !is_string($query['state'] ?? null) || $query['state'] === '') {
+        throw new RuntimeException('TT_CALLBACK');
+    }
+    if (!is_string($session['openid_connect_state'] ?? null) || $session['openid_connect_state'] === '') {
+        throw new RuntimeException('TT_SESSION_MISSING');
+    }
+    if (!hash_equals($session['openid_connect_state'], $query['state'])) {
+        throw new RuntimeException('TT_STATE');
+    }
+    if (($session['tt_login_started'] ?? 0) < time() - 600) {
+        throw new RuntimeException('TT_LOGIN_EXPIRED');
+    }
+    if (isset($query['error'])) {
+        $description = is_string($query['error_description'] ?? null) ? $query['error_description'] : '';
+        preg_match('/\bAADSTS[0-9]{4,9}\b/', $description, $matches);
+        throw new RuntimeException($matches[0] ?? 'TT_MICROSOFT');
+    }
+    if (!is_string($query['code'] ?? null) || $query['code'] === '') {
+        throw new RuntimeException('TT_CALLBACK');
+    }
+}
+
+/** Only allowlisted descriptions and numeric provider codes may leave PHP. */
+function tt_auth_failure(Throwable $error): array
+{
+    $messages = [
+        'TT_CALLBACK' => 'Odpowiedź logowania jest niekompletna. Rozpocznij logowanie ponownie.',
+        'TT_SESSION_MISSING' => 'Nie odnaleziono sesji rozpoczętego logowania. Spróbuj ponownie od strony planu.',
+        'TT_STATE' => 'Odpowiedź nie pasuje do rozpoczętego logowania. Spróbuj ponownie w jednej karcie.',
+        'TT_LOGIN_EXPIRED' => 'Upłynął czas na dokończenie logowania. Spróbuj ponownie.',
+        'TT_MICROSOFT' => 'Microsoft nie zakończył logowania. Spróbuj ponownie lub skontaktuj się z administratorem.',
+        'TT_TENANT' => 'To konto nie należy do katalogu organizacji dopuszczonego do planu.',
+        'TT_ROLE' => 'Twoje konto nie ma roli wymaganej do dostępu do planu.',
+        'TT_NONCE' => 'Nie udało się powiązać potwierdzenia Microsoft z sesją. Rozpocznij logowanie ponownie.',
+        'TT_TOKEN_TIME' => 'Potwierdzenie logowania jest nieważne lub wygasło. Spróbuj ponownie.',
+        'TT_TOKEN_CLAIMS' => 'Nie udało się zweryfikować danych potwierdzenia logowania.',
+        'TT_TOKEN_SIGNATURE' => 'Nie udało się zweryfikować podpisu potwierdzenia logowania.',
+        'TT_SESSION_SAVE' => 'Serwer nie mógł zapisać sesji logowania. Skontaktuj się z administratorem.',
+        'TT_PHP' => 'Wystąpił błąd po stronie serwera aplikacji. Skontaktuj się z administratorem.',
+        'TT_OIDC' => 'Nie udało się dokończyć logowania. Skontaktuj się z administratorem.',
+    ];
+    $detail = $error->getMessage();
+    $code = array_key_exists($detail, $messages) ? $detail : 'TT_OIDC';
+    if (preg_match('/\bAADSTS[0-9]{4,9}\b/', $detail, $matches)) {
+        return ['code' => $matches[0], 'message' => 'Microsoft zwrócił błąd podczas kończenia logowania. Przekaż kod administratorowi.'];
+    }
+    if (preg_match('/\ACurl error: \(([0-9]{1,3})\)/', $detail, $matches)) {
+        return ['code' => 'TT_CURL_' . $matches[1], 'message' => 'Serwer nie mógł połączyć się z usługą logowania Microsoft. Przekaż kod administratorowi.'];
+    }
+    if ($detail === 'Unable to verify JWT claims') $code = 'TT_TOKEN_CLAIMS';
+    if (str_starts_with($detail, 'Unable to verify signature')) $code = 'TT_TOKEN_SIGNATURE';
+    if ($error instanceof Error) $code = 'TT_PHP';
+    return ['code' => $code, 'message' => $messages[$code]];
+}
+
 function tt_oidc(array $config): \Jumbojett\OpenIDConnectClient
 {
     require_once __DIR__ . '/vendor/autoload.php';
@@ -98,13 +156,13 @@ function tt_oidc(array $config): \Jumbojett\OpenIDConnectClient
 function tt_user_from_claims(object $claims, array $config, string $expectedNonce): array
 {
     $roles = is_array($claims->roles ?? null) ? $claims->roles : [];
-    if (($claims->tid ?? '') !== $config['tenant_id'] || empty($claims->sub)
-        || $expectedNonce === '' || !is_string($claims->nonce ?? null) || !hash_equals($expectedNonce, $claims->nonce)
-        || !is_int($claims->exp ?? null)
-        || ($claims->exp ?? 0) <= time()
-        || ($config['required_role'] !== '' && !in_array($config['required_role'], $roles, true))) {
-        throw new RuntimeException('Account is not authorized for this timetable.');
+    if (($claims->tid ?? '') !== $config['tenant_id']) throw new RuntimeException('TT_TENANT');
+    if (empty($claims->sub)) throw new RuntimeException('TT_TOKEN_CLAIMS');
+    if ($expectedNonce === '' || !is_string($claims->nonce ?? null) || !hash_equals($expectedNonce, $claims->nonce)) {
+        throw new RuntimeException('TT_NONCE');
     }
+    if (!is_int($claims->exp ?? null) || $claims->exp <= time()) throw new RuntimeException('TT_TOKEN_TIME');
+    if ($config['required_role'] !== '' && !in_array($config['required_role'], $roles, true)) throw new RuntimeException('TT_ROLE');
     return [
         'subject' => $claims->sub,
         'tenant' => $config['tenant_id'],

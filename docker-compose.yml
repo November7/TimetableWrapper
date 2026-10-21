@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:${TIMETABLE_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html
+      - auth_vendor:/var/www/html/auth/vendor
+      - ./auth/config.php:/var/www/html/auth/config.php:ro
+      - ../plan:/var/www/plan:ro
+      - ../stareplany:/var/www/stareplany:ro
+
+volumes:
+  auth_vendor:

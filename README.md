@@ -5,18 +5,88 @@
 
 Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.
 
+Aktualna wersja: **1.5.0**. Dostępne są dwa osobne warianty wdrożenia:
+
+| Wariant | Plik wejściowy | Dostęp do planu | Przyciski w nagłówku |
+| --- | --- | --- | --- |
+| Publiczny | `index.html` | Bez logowania; pliki planu dostępne przez HTTP | Oryginalny plan, wydruk, rozmiar tekstu, motyw |
+| Microsoft 365 | `index.php` | Sesja PHP po logowaniu do wskazanego katalogu Entra ID | Wylogowanie, wydruk, rozmiar tekstu, motyw; bez przycisku oryginalnego planu |
+
+Usunięcie przycisku oryginalnego planu nie blokuje odczytu danych przez zalogowanego użytkownika: przeglądarka pobiera je przez chroniony endpoint PHP. Ochrona przed dostępem bez logowania działa na serwerze.
+
 ## Wymagania
 
 - Folder z planem wygenerowanym przez Vulcan (domyślnie katalog `plan` obok folderu projektu).
 - Plan jest poprawnie parsowany pod warunkiem, że został wyeksportowany z zaznaczoną opcją „drzewko z lewej strony”, a pozostałe opcje eksportu pozostawiono jako domyślne.
 - Folder `stareplany` obok folderu `plan` (opcjonalnie) z podfolderami archiwalnych wersji planu.
 - Lokalny serwer HTTP — aplikacja korzysta z `fetch()`, który nie działa przy otwarciu pliku bezpośrednio z dysku (`file://`) lub  publiczny serwer produkcyjny.
+- Wariant z logowaniem: Apache 2.4 z `mod_rewrite`, PHP 8.3 lub nowszy z rozszerzeniami cURL i OpenSSL, Composer 2 oraz HTTPS. Serwer musi obsługiwać sesje PHP i mieć dostęp HTTPS do usług logowania Microsoft.
+- Node.js i npm są potrzebne wyłącznie do przebudowania plików `.min`; nie są potrzebne na serwerze produkcyjnym.
 
 ## Uruchomienie
 
-### Opcjonalne logowanie Microsoft 365 (PHP)
+### Produkcja: Apache + PHP bez Dockera
 
-Możesz wdrożyć **`index.html` bez logowania** albo **`index.php` z logowaniem Microsoft 365**. Na serwerze pozostaw tylko wybrany plik wejściowy. Wariant PHP ma niezależny widok aplikacji, chroni też dostęp do źródeł planu i archiwów oraz współdzieli motyw z wariantem HTML.
+1. Skonfiguruj aplikację Entra ID zgodnie z [instrukcją Microsoft 365](microsoft-365.md). Użyj rejestracji **Single tenant** i adresu callback zakończonego `index.php?auth=callback`.
+2. Zainstaluj zależności z pliku blokady, w katalogu projektu:
+
+   ```sh
+   composer install --working-dir=auth --no-dev --prefer-dist --optimize-autoloader
+   composer audit --working-dir=auth --locked
+   ```
+
+   Jeżeli hosting nie udostępnia Composera, wykonaj instalację w zgodnym środowisku PHP i wyślij również wygenerowany katalog `auth/vendor/`.
+
+3. Wyślij do katalogu aplikacji wyłącznie `index.php`, pliki PHP z `auth/`, `auth/.htaccess`, `auth/vendor/`, `css/`, pliki `scripts/*.js` i `images/`. Skopiuj **`deploy/php-app.htaccess` jako główny `.htaccess` obok `index.php`**. Nie wysyłaj `index.html`, repozytorium `.git`, `.tools`, `.test-output`, `node_modules`, plików Docker, kopii zapasowych ani logów.
+4. Utwórz na serwerze `auth/config.php` na podstawie `auth/config.example.php`. Ustaw identyfikatory, sekret, produkcyjny `app_url` z HTTPS i ścieżki do danych. Alternatywnie umieść konfigurację poza katalogiem WWW i wskaż ją zmienną środowiskową `TIMETABLE_AUTH_CONFIG` dostępną dla PHP. Sekret nie trafia do Git.
+5. Umieść `plan/` i `stareplany/` **poza DocumentRoot serwera**, z prawem odczytu dla PHP. Samo umieszczenie ich poza katalogiem aplikacji nie wystarcza, jeśli nadal są publiczne. Jeżeli muszą pozostać w przestrzeni WWW, skopiuj `deploy/deny-direct-access.htaccess` jako `.htaccess` do obu katalogów i sprawdź blokadę HTTP.
+6. Włącz obsługę `.htaccess`. Przykładowa sekcja konfiguracji Apache dla katalogu aplikacji:
+
+   ```apache
+   <Directory "/var/www/html/TimetableWrapper">
+       AllowOverride All
+       Require all granted
+   </Directory>
+   ```
+
+   Główny `.htaccess` dopuszcza jedynie kontroler `index.php` i zasoby CSS/JS/obrazów; blokuje m.in. `index.html`, `auth/` oraz katalogi ukryte. Jeśli hosting ignoruje `.htaccess` lub zwraca błąd 500, popraw konfigurację przed udostępnieniem aplikacji.
+
+7. Wymuś HTTPS w konfiguracji hostingu/VirtualHost. Ustaw `display_errors=Off`, `log_errors=On`, zapis sesji poza DocumentRoot i brak prawa zapisu procesu PHP do kodu aplikacji. W logach dostępu nie zapisuj parametrów query callback — mogą zawierać jednorazowy kod OAuth. Przykład formatu logów Apache z samą ścieżką znajduje się w [instrukcji Microsoft 365](microsoft-365.md).
+8. Przed udostępnieniem sprawdź wdrożenie w prywatnym oknie przeglądarki:
+   - `index.php` wyświetla wyłącznie logowanie, także po dopisaniu `?preview=1` lub `?auth=callback&code=test&state=test`.
+   - `index.php/source/plan/lista.html` i `index.php/source/stareplany/` zwracają **401** bez sesji.
+   - `index.html`, `auth/config.php`, `.git/config`, `.tools/preview-server.cjs` oraz bezpośrednie adresy danych są niedostępne (**403/404**).
+   - Po prawdziwym logowaniu Microsoft plan się ładuje; po wylogowaniu chronione dane ponownie zwracają **401**.
+
+Brak konfiguracji lub zależności nie uruchamia publicznego planu — pokazuje niedostępne logowanie. Aplikacja nie zawiera produkcyjnego przełącznika pomijającego uwierzytelnianie. Lokalne narzędzia podglądu w ignorowanym `.tools/` nie są częścią wydania.
+
+### Lokalny wariant PHP przez Docker
+
+Docker uruchamia Apache z PHP i instaluje zależności logowania podczas budowania obrazu — nie musisz instalować PHP ani Composer lokalnie. Wymagany jest Docker Desktop z Compose. Compose montuje pliki projektu, więc lokalne zmiany są widoczne w kontenerze bez ponownego budowania obrazu. To ustawienie służy do lokalnego testowania; na serwer wdrażaj gotowe pliki zgodnie z instrukcją wdrożenia.
+
+Skopiuj przykładową konfigurację i uzupełnij dane aplikacji Entra ID:
+
+```powershell
+Copy-Item auth\config.example.php auth\config.php
+```
+
+W `auth/config.php` ustaw `tenant_id`, `client_id`, `client_secret` i `app_url` zgodnie z [instrukcją Microsoft 365](microsoft-365.md). Domyślne ścieżki planów w tej konfiguracji odpowiadają wolumenom Compose: `../plan` i `../stareplany` względem katalogu projektu.
+
+Uruchom kontener z katalogu projektu:
+
+```powershell
+docker compose up --build
+```
+
+Otwórz `http://localhost:8080/index.php`, aby sprawdzić ekran logowania. Port jest przypięty wyłącznie do `127.0.0.1`; można go zmienić zmienną `TIMETABLE_PORT`, np. `$env:TIMETABLE_PORT = "8081"`. Kontener korzysta z blokad wariantu PHP, więc nie służy do uruchamiania publicznego `index.html`. Zmiana konfiguracji Apache lub Dockerfile wymaga ponownego `docker compose up --build`.
+
+Po zmianie `auth/composer.json` lub `auth/composer.lock` przebuduj obraz i odtwórz wolumen zależności poleceniem `docker compose down -v`, a następnie `docker compose up --build`.
+
+Logowanie Microsoft 365 wymaga adresu HTTPS zgodnego z `app_url` i zarejestrowanym URI przekierowania. Sam kontener udostępnia HTTP; aby się zalogować, skieruj skonfigurowany terminator HTTPS na kontener i otwórz aplikację pod adresem `app_url`. Nie wyłączaj bezpiecznych ustawień sesji w celu uruchomienia logowania przez HTTP.
+
+### Zasady dostępu Microsoft 365
+
+Wariant PHP ma niezależny widok aplikacji, chroni też źródła planu i archiwów oraz współdzieli motyw z ekranem logowania. Domyślnie dopuszcza konta wskazanego katalogu Entra ID, również konta gości tego katalogu. Aby ograniczyć dostęp, ustaw `required_role` i przypisz odpowiednią rolę aplikacji w Entra ID. Wylogowanie kończy sesję planu, ale nie wylogowuje ze wszystkich usług Microsoft.
 
 Konfiguracja aplikacji Entra ID, pliku `auth/config.php` i plików `.htaccess`: **[instrukcja Microsoft 365](microsoft-365.md)**.
 
@@ -35,7 +105,11 @@ Następnie otwórz w przeglądarce:
 http://localhost:5500/TimetableWrapper/
 ```
 
+Na produkcję publiczną wyślij `index.html`, `css/`, pliki `scripts/*.js` oraz dostępne przez HTTP dane `plan/` i `stareplany/`. Nie instaluj blokad `.htaccess` przeznaczonych dla wariantu PHP. Lokalny serwer z katalogu nadrzędnego służy wyłącznie do testów — nie udostępniaj przez niego całego katalogu roboczego w Internecie.
+
 ### Konfiguracja ścieżki do planu
+
+Poniższe ścieżki URL dotyczą wariantu publicznego. W wariancie PHP ustaw `plan_dir` i `archive_dir` w konfiguracji serwera; widok automatycznie kieruje żądania przez `index.php/source/...`.
 
 Domyślna ścieżka to `../plan`. Można ją nadpisać, dodając przed dołączeniem skryptu:
 
@@ -123,7 +197,10 @@ Przetwarzanie nazwy przedmiotu wykonywane jest w kolejności: `mapowanie nazwy` 
 - **Etykiety w komórkach** — przełączniki widoczności linków do nauczyciela, sali i oddziału (osobno dla każdej kategorii).
 - **Rozmiar czcionki** — przyciski A− / A+ skalują treść planu (zakres 80–130%, zapisywany lokalnie).
 - **Motyw jasny/ciemny** — przełącznik z automatycznym wykrywaniem preferencji systemowych; wybór zapisywany lokalnie.
-- **Oryginalny plan i wydruk** — ikonowe przyciski w nagłówku otwierają plik źródłowy bieżącego planu oraz drukują prawy panel bez nawigacji.
+- **Oryginalny plan** — przycisk otwierający plik źródłowy występuje wyłącznie w publicznym `index.html`.
+- **Wylogowanie** — przycisk w wariancie PHP kończy sesję planu; operacja wymaga POST i tokena CSRF.
+- **Wydruk** — przycisk w nagłówku drukuje prawy panel bez nawigacji (na komputerze).
+- **Ekran logowania** — logo szkoły, logowanie Microsoft 365, komunikaty błędów oraz wspólny przełącznik jasnego/ciemnego motywu. Przyciski mają delikatnie wypukły wygląd w obu motywach.
 - **Widok mobilny** —  poniżej 860 px tabela zostaje zastąpiona widokiem "akordeon" z podziałem na dni tygodnia. Panel boczny wysuwa się po naciśnięciu przycisku Menu.
 - **Podział grup w komórkach** — gdy w danej lekcji występuje tylko jedna grupa w formacie `X/N` (np. `1/2`, `2/2`, `1/3`), aplikacja automatycznie dokłada pusty slot po przeciwnej stronie, aby zachować czytelny podział. Grupa `1/N` jest po lewej, a `X/N` dla `X>1` po prawej.
 - **Równe kolumny wpisów** — wpisy lekcji w jednej komórce mają zawsze taką samą szerokość.
@@ -134,13 +211,19 @@ Przetwarzanie nazwy przedmiotu wykonywane jest w kolejności: `mapowanie nazwy` 
 
 ```
 TimetableWrapper/
-├── index.html          # Główny plik aplikacji
-├── css/
-│   ├── app.css         # Style źródłowe (motywy, układ, tabela, widok mobilny)
-│   └── app.min.css     # Style zminifikowane
-└── scripts/
-    ├── app.js          # Logika aplikacji (fetch, parsowanie, renderowanie)
-    └── app.min.js      # Logika zminifikowana
+├── index.html          # Publiczny wariant bez logowania
+├── index.php           # Kontroler uwierzytelniania i chronionych danych
+├── auth/               # Widoki PHP, sesje, OIDC, odczyt danych, Composer
+│   ├── config.example.php # Przykład konfiguracji bez sekretów
+│   ├── config.php      # Konfiguracja lokalna/serwera, ignorowana przez Git
+│   └── vendor/         # Zależności generowane przez Composer, poza Git
+├── css/                # app.css, app.min.css, login.css
+├── scripts/            # app.js, app.min.js, map.js, theme.js, login.js
+├── images/             # Logo ekranu logowania
+├── deploy/             # Blokady .htaccess dla wdrożenia PHP
+├── docker/             # Konfiguracja lokalnego Apache
+├── Dockerfile
+└── docker-compose.yml  # Lokalne środowisko PHP
 
 ../plan/                # Folder z plikami Vulcan (poza projektem)
     lista.html
@@ -159,9 +242,32 @@ TimetableWrapper/
 
 Aplikacja obsługuje motywy jasny i ciemny. Przy pierwszym uruchomieniu wybierany jest motyw zgodny z ustawieniami systemu operacyjnego. Wybór użytkownika zapisywany jest w `localStorage`.
 
+## Budowanie i przygotowanie commita
+
+```sh
+npm ci
+npm run min
+npm audit
+git diff --check
+git status --short
+```
+
+Po zmianie `scripts/app.js` lub `css/app.css` przebuduj i dodaj do commita także odpowiedni plik `.min`. `css/login.css` jest używany bez minifikacji. Wersja wydania jest zapisana w `package.json`, `package-lock.json`, `APP_VERSION` w `scripts/app.js` oraz parametrach `?v=` zasobów w widokach HTML/PHP.
+
+Do Git trafiają `auth/composer.json` i `auth/composer.lock`; nie trafiają `auth/config.php`, `auth/vendor/`, `.env`, klucze, logi, pliki planów, `.tools/` ani `.test-output/`. `.gitignore` nie zabezpiecza serwera WWW i nie usuwa plików już śledzonych — przed commitem sprawdź również `git diff --cached`.
+
 ---
 
 ## Historia wersji
+
+### 1.5.0 (2026-10-21)
+
+- Dodano wariant PHP z logowaniem Microsoft 365, walidacją sesji i chronionym dostępem do planów oraz archiwów.
+- Dodano wylogowanie z ochroną CSRF; przycisk oryginalnego planu pozostawiono tylko w publicznym `index.html`.
+- Odświeżono ekran logowania, ujednolicono przełączniki motywu i dopracowano wypukły wygląd przycisków.
+- Dodano konfigurację Apache z listą dozwolonych zasobów oraz instrukcję wdrożenia bez Dockera.
+- Dodano lokalne środowisko Docker z blokadą plików roboczych i portem dostępnym tylko lokalnie.
+- Zastąpiono narzędzie CLI minifikacji CSS bezpośrednim użyciem `clean-css`, usuwając podatne zależności narzędziowe.
 
 ### 1.4.8 (2026-09-22)
 - Dodano mapowanie kodów wpisów międzyoddziałowych, np. `#W1`, z możliwością konfiguracji przez `TIMETABLE_INTERCLASS_SUBJECT_MAP`.

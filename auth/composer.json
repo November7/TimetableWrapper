@@ -1,0 +1,8 @@
+{
+  "require": {
+    "jumbojett/openid-connect-php": "1.0.2"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

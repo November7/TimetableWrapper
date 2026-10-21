@@ -1,0 +1,15 @@
+# PHP deployment only: copy this file as .htaccess beside index.php.
+# Apache 2.4 + mod_rewrite; AllowOverride must permit these directives.
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+AcceptPathInfo On
+
+RewriteEngine On
+# Never serve hidden files, development tools, backups or another entry point.
+RewriteRule "(^|/)\." - [F]
+RewriteRule "^$" - [L]
+RewriteRule "^index\.php(?:/.*)?$" - [L]
+RewriteRule "^css/[^/]+\.css$" - [L]
+RewriteRule "^scripts/[^/]+\.js$" - [L]
+RewriteRule "^images/[^/]+\.(?:png|jpg|jpeg|gif|webp|svg|ico)$" - [L,NC]
+RewriteRule "^" - [F]

@@ -9,9 +9,9 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Nowoczesny podgląd planu lekcji bez ramek.">
   <title>Plan lekcji</title>
-  <script src="<?= tt_escape($assetBase) ?>scripts/theme.js?v=1.0.0"></script>
-  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/app.min.css?v=1.4.8" type="text/css">
-  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.0.0" type="text/css">
+  <script src="<?= tt_escape($assetBase) ?>scripts/theme.js?v=1.5.0"></script>
+  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/app.min.css?v=1.5.0" type="text/css">
+  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.5.0" type="text/css">
 </head>
 <body>
   <div class="app-shell">
@@ -46,7 +46,6 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
             <button id="font-decrease" class="font-toggle" type="button" aria-label="Zmniejsz czcionkę planu" title="Zmniejsz czcionkę">A</button>
             <button id="font-increase" class="font-toggle" type="button" aria-label="Powiększ czcionkę planu" title="Powiększ czcionkę">A</button>
           </div>
-          <a id="original-plan-link" class="header-icon-link" target="_blank" rel="noopener" aria-label="Otwórz oryginalny plan" title="Otwórz oryginalny plan" aria-disabled="true"><span aria-hidden="true">&#8599;</span></a>
           <button id="print-plan" class="header-icon-button" type="button" aria-label="Drukuj aktualnie wyświetlony plan" title="Drukuj aktualnie wyświetlony plan"><span aria-hidden="true">&#128438;</span></button>
           <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Przełącz motyw" title="Przełącz motyw">
             <span class="theme-toggle-track" aria-hidden="true"><span class="theme-toggle-knob"><span id="theme-icon" aria-hidden="true">☀</span></span></span>
@@ -76,6 +75,6 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
     window.TIMETABLE_ARCHIVE_ROOT = <?= json_encode($basePath . 'index.php/source/stareplany', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     window.TIMETABLE_LOGIN_URL = <?= json_encode($appUrl, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
   </script>
-  <script src="<?= tt_escape($assetBase) ?>scripts/app.min.js?v=1.4.8-auth1"></script>
+  <script src="<?= tt_escape($assetBase) ?>scripts/app.min.js?v=1.5.0"></script>
 </body>
 </html>

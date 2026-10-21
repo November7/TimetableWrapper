@@ -18,7 +18,7 @@ Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez p
 
 Możesz wdrożyć **`index.html` bez logowania** albo **`index.php` z logowaniem Microsoft 365**. Na serwerze pozostaw tylko wybrany plik wejściowy. Wariant PHP ma niezależny widok aplikacji, chroni też dostęp do źródeł planu i archiwów oraz współdzieli motyw z wariantem HTML.
 
-Konfiguracja Entra ID, PHP, zależności i obowiązkowych blokad bezpośredniego dostępu do danych: **[instrukcja wdrożenia Microsoft 365](docs/microsoft-365.md)**.
+Konfiguracja aplikacji Entra ID, pliku `auth/config.php` i plików `.htaccess`: **[instrukcja Microsoft 365](microsoft-365.md)**.
 
 ### Wariant publiczny HTML
 

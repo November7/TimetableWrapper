@@ -53,7 +53,12 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
           </button>
           <form class="auth-logout" method="post" action="<?= tt_escape($appUrl) ?>?auth=logout">
             <input type="hidden" name="csrf" value="<?= tt_escape($csrf) ?>">
-            <button class="header-icon-button" type="submit" title="Wyloguj z planu">Wyloguj</button>
+            <button class="header-icon-button" type="submit" aria-label="Wyloguj z planu" title="Wyloguj z planu">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10 17l5-5-5-5m5 5H3"/>
+                <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
+              </svg>
+            </button>
           </form>
         </div>
       </header>

@@ -10,7 +10,7 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
   <title>Zaloguj się - Plan lekcji</title>
   <script src="<?= tt_escape($assetBase) ?>scripts/theme.js?v=1.5.0"></script>
   <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/app.min.css?v=1.5.0">
-  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.5.0">
+  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.5.1">
 </head>
 <body class="login-page">
   <main class="login-card" aria-labelledby="login-title">
@@ -22,11 +22,13 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
     <p class="login-description">Zaloguj się szkolnym kontem Microsoft 365,<br class="login-line-break"> aby przejść do planu.</p>
     <form method="post" action="<?= tt_escape($appUrl) ?>?auth=login">
       <input type="hidden" name="csrf" value="<?= tt_escape($csrf) ?>">
-      <button class="login-microsoft" type="submit" aria-label="Zaloguj przez Microsoft 365" <?= $ready ? '' : 'disabled' ?>>
+      <button class="login-microsoft" type="submit" aria-label="Zaloguj przez Microsoft 365" title="Zaloguj przez Microsoft 365" <?= $ready ? '' : 'disabled' ?>>
         <span class="login-microsoft-icon" aria-hidden="true">
-          <svg viewBox="0 0 21 21"><path fill="#f25022" d="M0 0h10v10H0z"/><path fill="#7fba00" d="M11 0h10v10H11z"/><path fill="#00a4ef" d="M0 11h10v10H0z"/><path fill="#ffb900" d="M11 11h10v10H11z"/></svg>
+          <span class="login-microsoft-tile"></span>
+          <span class="login-microsoft-tile"></span>
+          <span class="login-microsoft-tile"></span>
+          <span class="login-microsoft-tile"></span>
         </span>
-        <span class="login-microsoft-label">Zaloguj przez Microsoft 365</span>
       </button>
     </form>
     <?php if ($message !== ''): ?>
@@ -42,6 +44,6 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
       </button>
     </div>
   </main>
-  <script src="<?= tt_escape($assetBase) ?>scripts/login.js?v=1.5.0"></script>
+  <script src="<?= tt_escape($assetBase) ?>scripts/login.js?v=1.5.1"></script>
 </body>
 </html>

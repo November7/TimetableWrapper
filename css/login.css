@@ -51,39 +51,50 @@
 }
 
 .login-emblem { width: 120px; height: 120px; margin: 0 auto 24px; }
-.login-emblem img { display: block; width: 100%; height: 100%; object-fit: contain; filter: brightness(.25); }
-:root[data-theme="dark"] .login-emblem img { filter: none; }
+.login-emblem img { display: block; width: 100%; height: 100%; object-fit: contain; filter: brightness(0) saturate(100%); opacity: .60; }
+:root[data-theme="dark"] .login-emblem img { filter: grayscale(1); opacity: .68; }
 .login-card h1 { margin: 0; font-size: 1.875rem; line-height: 1.2; font-weight: 650; letter-spacing: -.035em; }
 .login-school { margin: 8px 0 0; color: var(--login-muted); font-size: .875rem; }
 .login-description { margin: 24px 0; color: var(--login-muted); font-size: .875rem; line-height: 1.65; }
 
+/* Rounded raised control, using the app's toolbar surface palette. */
 .login-microsoft {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 56px;
-  padding: 12px 16px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: var(--login-accent);
-  color: #ffffff;
-  font: inherit;
-  font-size: .9375rem;
-  font-weight: 600;
-  line-height: 1.4;
-  cursor: pointer;
-  transition: background .15s ease, transform .15s ease;
+  appearance: none; display: grid; place-items: center;
+  width: 60px; height: 60px; margin: 0 auto; padding: 15px;
+  border: 0; border-radius: 50%; cursor: pointer; touch-action: manipulation;
+  background: linear-gradient(160deg, #e9edf2, #d9dfe7);
+  box-shadow: inset 0 1px 1px #ffffffd9, inset 0 -1px 2px #707a8829,
+    0 3px 5px #28324126, 0 0 0 1px #707a8838;
+  transition: box-shadow .2s ease;
 }
-
-.login-microsoft-label { min-width: 0; }
-.login-microsoft-icon { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 4px; background: #ffffff; }
-.login-microsoft-icon svg { display: block; width: 18px; height: 18px; }
-.login-microsoft:hover:not(:disabled) { background: var(--login-hover); transform: translateY(-1px); }
-.login-microsoft:active:not(:disabled) { transform: none; }
-.login-microsoft:disabled { background: var(--login-soft); border-color: var(--login-line); color: var(--login-muted); cursor: not-allowed; }
+:root[data-theme="dark"] .login-microsoft {
+  background: linear-gradient(160deg, #353c43, #2b3137);
+  box-shadow: inset 0 1px 1px #ffffff29, inset 0 -1px 2px #0000004d,
+    0 3px 5px #0000003d, 0 0 0 1px #ffffff14;
+}
+.login-microsoft:hover:not(:disabled) { box-shadow: inset 0 1px 1px #ffffff80, inset 0 -1px 2px #00000020, 0 4px 8px #00000026, 0 0 0 1px var(--login-muted); }
+.login-microsoft:active:not(:disabled) { box-shadow: inset 0 2px 4px #00000030, 0 1px 2px #00000018, 0 0 0 1px var(--login-line); }
+.login-microsoft:disabled { background: var(--login-soft); box-shadow: inset 0 0 0 1px var(--login-line); opacity: .5; cursor: not-allowed; }
 .login-page :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+.login-microsoft-icon { display: grid; width: 30px; height: 30px; grid-template-columns: 14px 14px; grid-template-rows: 14px 14px; gap: 2px; pointer-events: none; }
+.login-microsoft-tile { position: relative; width: 14px; height: 14px; --light-x: 7px; --light-y: 7px; }
+.login-microsoft-tile::before, .login-microsoft-tile::after {
+  content: ""; position: absolute; inset: 0; box-sizing: border-box; padding: 2px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+.login-microsoft-tile::before { background: var(--login-muted); opacity: .7; }
+.login-microsoft-tile::after {
+  background: radial-gradient(circle 26px at var(--light-x) var(--light-y), #fff 0%, var(--tile-color) 22%, transparent 100%);
+  opacity: 0; transition: opacity .3s ease;
+}
+.login-microsoft-tile:nth-child(1) { --tile-color: #f25022; }
+.login-microsoft-tile:nth-child(2) { --tile-color: #7fba00; }
+.login-microsoft-tile:nth-child(3) { --tile-color: #00a4ef; }
+.login-microsoft-tile:nth-child(4) { --tile-color: #ffb900; }
+.login-microsoft:is(:hover, :focus-visible):not(:disabled) .login-microsoft-tile::after { opacity: 1; }
 
 .login-message {
   margin: 16px 0 0;
@@ -105,7 +116,6 @@
 @media (max-width: 380px) {
   .login-page { padding: 20px 16px; }
   .login-card { padding: 28px 20px 20px; border-radius: 20px; }
-  .login-microsoft { padding-inline: 12px; font-size: .875rem; }
   .login-line-break { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {

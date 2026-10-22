@@ -12,6 +12,12 @@
   --login-notice-bg: #fff7e8;
   --login-notice-ink: #80551a;
   --login-notice-line: #ecd6b2;
+  --login-logo-fill: #aeb9c5;
+  --login-logo-shadow: .55;
+  --login-logo-highlight: .95;
+  --login-tile-fill: var(--login-logo-fill);
+  --login-tile-shadow: #34465b80;
+  --login-tile-highlight: #ffffffd9;
   min-height: 100vh;
   min-height: 100svh;
   display: grid;
@@ -19,6 +25,8 @@
   padding: 32px 20px;
   background: radial-gradient(ellipse at 50% 20%, var(--login-glow), transparent 65%), var(--login-bg);
   color: var(--login-ink);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 :root[data-theme="dark"] .login-page {
@@ -35,6 +43,11 @@
   --login-notice-bg: #393226;
   --login-notice-ink: #f0cf94;
   --login-notice-line: #645137;
+  --login-logo-fill: #18212c;
+  --login-logo-shadow: .85;
+  --login-logo-highlight: .22;
+  --login-tile-shadow: #000000b3;
+  --login-tile-highlight: #ffffff38;
   background: radial-gradient(ellipse at 50% 20%, var(--login-glow), transparent 65%), var(--login-bg);
 }
 
@@ -50,13 +63,24 @@
   box-shadow: var(--login-shadow);
 }
 
-.login-emblem { width: 120px; height: 120px; margin: 0 auto 24px; }
-.login-emblem img { display: block; width: 100%; height: 100%; object-fit: contain; filter: brightness(0) saturate(100%); opacity: .60; }
-:root[data-theme="dark"] .login-emblem img { filter: grayscale(1); opacity: .68; }
+.login-emblem { width: 150px; height: 150px; margin: 0 auto 24px; }
+.login-emblem img { display: block; width: 100%; height: 100%; object-fit: contain; filter: url("#login-logo-deboss"); }
+.login-emblem-filter { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+.login-logo-fill { flood-color: var(--login-logo-fill); }
+.login-logo-shadow { flood-opacity: var(--login-logo-shadow); }
+.login-logo-highlight { flood-opacity: var(--login-logo-highlight); }
 .login-card h1 { margin: 0; color: rgb(0 0 0 / .60); font-size: 1.875rem; line-height: 1.2; font-weight: 650; letter-spacing: -.035em; }
 :root[data-theme="dark"] .login-card h1 { color: rgb(255 255 255 / .68); }
 .login-school { margin: 8px 0 0; color: var(--login-muted); font-size: .875rem; }
 .login-description { margin: 24px 0; color: var(--login-muted); font-size: .875rem; line-height: 1.65; }
+.login-card h1, .login-school, .login-description, .login-theme > span {
+  filter: url("#login-content-deboss");
+}
+/* Keep thin light glyphs intact; suggest depth around their edges instead. */
+:root[data-theme="dark"] .login-card :is(h1, .login-school, .login-description, .login-theme > span) {
+  filter: none;
+  text-shadow: 0 -1px 0 rgb(0 0 0 / .4), 0 1px 0 rgb(255 255 255 / .06);
+}
 
 /* Rounded raised control, using the app's toolbar surface palette. */
 .login-microsoft {
@@ -78,17 +102,19 @@
 .login-microsoft:disabled { background: var(--login-soft); box-shadow: inset 0 0 0 1px var(--login-line); opacity: .5; cursor: not-allowed; }
 .login-page :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
 .login-microsoft-icon { display: grid; width: 30px; height: 30px; grid-template-columns: 14px 14px; grid-template-rows: 14px 14px; gap: 2px; pointer-events: none; }
-.login-microsoft-tile { position: relative; width: 14px; height: 14px; --light-x: 7px; --light-y: 7px; }
+.login-microsoft-tile { position: relative; width: 14px; height: 14px; }
 .login-microsoft-tile::before, .login-microsoft-tile::after {
-  content: ""; position: absolute; inset: 0; box-sizing: border-box; padding: 2px;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
+  content: ""; position: absolute; inset: 0; box-sizing: border-box;
 }
-.login-microsoft-tile::before { background: var(--login-muted); opacity: .7; }
+/* Each square is recessed into the button, with light catching its lower lip. */
+.login-microsoft-tile::before {
+  background: var(--login-tile-fill);
+  box-shadow: inset .7px 1px 1.5px var(--login-tile-shadow),
+    .5px 1px .5px var(--login-tile-highlight);
+}
 .login-microsoft-tile::after {
-  background: radial-gradient(circle 26px at var(--light-x) var(--light-y), #fff 0%, var(--tile-color) 22%, transparent 100%);
+  background: var(--tile-color);
+  box-shadow: inset .7px 1px 1.5px var(--login-tile-shadow);
   opacity: 0; transition: opacity .3s ease;
 }
 .login-microsoft-tile:nth-child(1) { --tile-color: #f25022; }
@@ -109,8 +135,18 @@
   overflow-wrap: anywhere;
 }
 
-.login-theme { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--login-line); color: var(--login-muted); font-size: .8125rem; text-align: left; }
+.login-theme { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; padding-top: 16px; border-top: 1px solid transparent; color: var(--login-muted); font-size: .8125rem; text-align: left; }
+.login-theme::before {
+  content: ""; position: absolute; top: -1px; left: 0; right: 0; height: 1px;
+  border-radius: 1px; pointer-events: none;
+  background: var(--login-logo-fill);
+  box-shadow: inset 0 1px 1px var(--login-tile-shadow), 0 1px 0 var(--login-tile-highlight);
+}
 .login-theme .theme-toggle { flex-shrink: 0; }
+.login-page .login-theme .theme-toggle-track {
+  background: var(--login-logo-fill);
+  box-shadow: inset 0 2px 2px var(--login-tile-shadow), inset 0 -1px 1px var(--login-tile-highlight);
+}
 
 .auth-logout { margin: 0; display: flex; }
 .auth-logout button { font: inherit; font-size: .8rem; min-height: 40px; }

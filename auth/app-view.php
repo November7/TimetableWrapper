@@ -9,9 +9,9 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Nowoczesny podgląd planu lekcji bez ramek.">
   <title>Plan lekcji</title>
-  <script src="<?= tt_escape($assetBase) ?>scripts/theme.js?v=1.5.0"></script>
-  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/app.min.css?v=1.5.0" type="text/css">
-  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.5.0" type="text/css">
+  <script src="<?= tt_escape($assetBase) ?>scripts/theme.js?v=1.5.2"></script>
+  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/app.min.css?v=1.5.2" type="text/css">
+  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.5.2" type="text/css">
 </head>
 <body>
   <div class="app-shell">
@@ -75,6 +75,6 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
     window.TIMETABLE_ARCHIVE_ROOT = <?= json_encode($basePath . 'index.php/source/stareplany', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     window.TIMETABLE_LOGIN_URL = <?= json_encode($appUrl, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
   </script>
-  <script src="<?= tt_escape($assetBase) ?>scripts/app.min.js?v=1.5.0"></script>
+  <script src="<?= tt_escape($assetBase) ?>scripts/app.min.js?v=1.5.2"></script>
 </body>
 </html>

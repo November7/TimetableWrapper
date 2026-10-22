@@ -5,7 +5,7 @@
 
 Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.
 
-Aktualna wersja: **1.5.0**. Dostępne są dwa osobne warianty wdrożenia:
+Aktualna wersja: **1.5.2**. Dostępne są dwa osobne warianty wdrożenia:
 
 | Wariant | Plik wejściowy | Dostęp do planu | Przyciski w nagłówku |
 | --- | --- | --- | --- |
@@ -200,7 +200,7 @@ Przetwarzanie nazwy przedmiotu wykonywane jest w kolejności: `mapowanie nazwy` 
 - **Oryginalny plan** — przycisk otwierający plik źródłowy występuje wyłącznie w publicznym `index.html`.
 - **Wylogowanie** — przycisk w wariancie PHP kończy sesję planu; operacja wymaga POST i tokena CSRF.
 - **Wydruk** — przycisk w nagłówku drukuje prawy panel bez nawigacji (na komputerze).
-- **Ekran logowania** — logo szkoły, logowanie Microsoft 365, komunikaty błędów oraz wspólny przełącznik jasnego/ciemnego motywu. Przyciski mają delikatnie wypukły wygląd w obu motywach.
+- **Ekran logowania** — logo szkoły, logowanie Microsoft 365, komunikaty błędów oraz wspólny przełącznik jasnego/ciemnego motywu. Odświeżony wygląd łączy wgłębione logo i tekst z wypukłą kartą oraz przyciskiem logowania; efekt dopasowuje się do jasnego i ciemnego motywu, a kolorowe pola przycisku podświetlają się po najechaniu lub ustawieniu fokusu.
 - **Widok mobilny** —  poniżej 860 px tabela zostaje zastąpiona widokiem "akordeon" z podziałem na dni tygodnia. Panel boczny wysuwa się po naciśnięciu przycisku Menu.
 - **Podział grup w komórkach** — gdy w danej lekcji występuje tylko jedna grupa w formacie `X/N` (np. `1/2`, `2/2`, `1/3`), aplikacja automatycznie dokłada pusty slot po przeciwnej stronie, aby zachować czytelny podział. Grupa `1/N` jest po lewej, a `X/N` dla `X>1` po prawej.
 - **Równe kolumny wpisów** — wpisy lekcji w jednej komórce mają zawsze taką samą szerokość.
@@ -259,6 +259,11 @@ Do Git trafiają `auth/composer.json` i `auth/composer.lock`; nie trafiają `aut
 ---
 
 ## Historia wersji
+
+### 1.5.2 (2026-10-22)
+
+- Odświeżono wizualnie ekran logowania: dodano subtelne tło z poświatą, większe wgłębione logo i tekst oraz wypukłe elementy interfejsu dopasowane do jasnego i ciemnego motywu.
+- Dopracowano przycisk logowania Microsoft 365 — kolorowe pola podświetlają się po najechaniu lub ustawieniu fokusu.
 
 ### 1.5.0 (2026-10-21)
 

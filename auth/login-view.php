@@ -10,7 +10,7 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
   <title>Zaloguj się - Plan lekcji</title>
   <script src="<?= tt_escape($assetBase) ?>scripts/theme.js?v=1.5.0"></script>
   <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/app.min.css?v=1.5.0">
-  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.5.1">
+  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.5.3">
 </head>
 <body class="login-page">
   <main class="login-card" aria-labelledby="login-title">

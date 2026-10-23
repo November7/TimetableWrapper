@@ -11,6 +11,7 @@ const state = {
   currentItem: null,
   filterText: "",
   rememberCategoryFilters: true,
+  currentSchoolYearOnly: true,
   separatePanelScroll: true,
   hideEmptyDays: false,
   wideTeacherGroups: true,
@@ -69,7 +70,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.5.3";
+const APP_VERSION = "1.5.4";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
@@ -80,6 +81,7 @@ const FONT_SCALE_STEP = 0.1;
 const PANEL_SCROLL_MODE_STORAGE_KEY = "panelScrollMode";
 const HIDE_EMPTY_DAYS_STORAGE_KEY = "hideEmptyDays";
 const REMEMBER_CATEGORY_FILTERS_STORAGE_KEY = "rememberCategoryFilters";
+const CURRENT_SCHOOL_YEAR_ONLY_STORAGE_KEY = "currentSchoolYearOnly";
 const WIDE_TEACHER_GROUPS_STORAGE_KEY = "wideTeacherGroups";
 const WIDE_ROOM_GROUPS_STORAGE_KEY = "wideRoomGroups";
 const HISTORY_STATE_VERSION = 1;
@@ -260,6 +262,7 @@ async function init() {
   setupRememberCategoryFiltersMode();
   setupWideTeacherGroupsMode();
   setupWideRoomGroupsMode();
+  state.currentSchoolYearOnly = localStorage.getItem(CURRENT_SCHOOL_YEAR_ONLY_STORAGE_KEY) !== "false";
   attachEvents();
   renderLabelControls();
   state.currentPlanRoot = DEFAULT_PLAN_ROOT;
@@ -431,6 +434,23 @@ function applyRememberCategoryFiltersMode(enabled, options) {
       state.rememberCategoryFilters ? "true" : "false"
     );
     renderItems();
+  }
+}
+
+async function applyCurrentSchoolYearOnlyMode(enabled) {
+  state.currentSchoolYearOnly = Boolean(enabled);
+  localStorage.setItem(
+    CURRENT_SCHOOL_YEAR_ONLY_STORAGE_KEY,
+    state.currentSchoolYearOnly ? "true" : "false"
+  );
+
+  await loadPlanSources();
+  renderPlanSourceOptions();
+
+  // Wybrana wersja planu mogła wypaść z listy po zawężeniu do bieżącego roku.
+  const currentRoot = getPlanRoot();
+  if (!state.planSources.some((source) => normalizePlanRoot(source.root) === normalizePlanRoot(currentRoot))) {
+    await switchPlanRoot(DEFAULT_PLAN_ROOT);
   }
 }
 
@@ -993,9 +1013,9 @@ function getArchiveFolderNames(doc) {
         date: parsedDate
       };
     })
-    .filter((entry) => entry.date && entry.date.getTime() >= schoolYearStartDate.getTime())
+    .filter((entry) => entry.date && (!state.currentSchoolYearOnly || entry.date.getTime() >= schoolYearStartDate.getTime()))
     .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, ARCHIVE_MAX_ENTRIES)
+    .slice(0, state.currentSchoolYearOnly ? ARCHIVE_MAX_ENTRIES : undefined)
     .map((entry) => entry.name);
 }
 
@@ -1369,6 +1389,20 @@ function renderLabelControls() {
   createScrollModeToggle();
   createHideEmptyDaysToggle();
   createRememberCategoryFiltersToggle();
+  createCurrentSchoolYearOnlyToggle();
+}
+
+function createCurrentSchoolYearOnlyToggle() {
+  const toggle = createToggleLine({
+    id: "current-school-year-only-toggle",
+    text: "Tylko obecny rok szkolny",
+    checked: state.currentSchoolYearOnly,
+    onChange: (checked) => {
+      applyCurrentSchoolYearOnlyMode(checked);
+    }
+  });
+
+  refs.labelControls.appendChild(toggle);
 }
 
 function createScrollModeToggle() {

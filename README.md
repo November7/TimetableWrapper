@@ -5,7 +5,7 @@
 
 Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.
 
-Aktualna wersja: **1.5.3**. Dostępne są dwa osobne warianty wdrożenia:
+Aktualna wersja: **1.5.4**. Dostępne są dwa osobne warianty wdrożenia:
 
 | Wariant | Plik wejściowy | Dostęp do planu | Przyciski w nagłówku |
 | --- | --- | --- | --- |
@@ -259,6 +259,10 @@ Do Git trafiają `auth/composer.json` i `auth/composer.lock`; nie trafiają `aut
 ---
 
 ## Historia wersji
+
+### 1.5.4 (2026-10-23)
+
+- Dodano opcję „Tylko obecny rok szkolny” (domyślnie włączona). Po wyłączeniu lista wersji planów zawiera pełną historię archiwum, bez limitu roku szkolnego i liczby pozycji. Ustawienie jest zapamiętywane.
 
 ### 1.5.3 (2026-10-23)
 

@@ -69,7 +69,7 @@ const refs = {
   themeIcon: document.getElementById("theme-icon")
 };
 
-const APP_VERSION = "1.5.2";
+const APP_VERSION = "1.5.3";
 const SIDEBAR_COLLAPSE_WIDTH = Math.max(
   1,
   Number.parseInt(String(window.TIMETABLE_SIDEBAR_COLLAPSE_WIDTH || "1000"), 10) || 1000
@@ -430,6 +430,7 @@ function applyRememberCategoryFiltersMode(enabled, options) {
       REMEMBER_CATEGORY_FILTERS_STORAGE_KEY,
       state.rememberCategoryFilters ? "true" : "false"
     );
+    renderItems();
   }
 }
 
@@ -751,9 +752,11 @@ function attachEvents() {
       renderLabelControls();
       renderItems();
 
-      const first = getFilteredItems()[0];
+      const first = getFilteredItems().find((item) => item.category === state.currentCategory);
       if (first) {
         await selectItem(first.path);
+      } else if (!state.rememberCategoryFilters && state.filterText) {
+        return;
       } else {
         setStatus("Brak wynikow dla tej kategorii.", false);
       }
@@ -1113,7 +1116,16 @@ function getFilteredItems() {
     return items;
   }
 
-  return items.filter((item) => item.label.toLowerCase().includes(state.filterText));
+  const matches = (item) => item.label.toLowerCase().includes(state.filterText);
+  if (state.rememberCategoryFilters) {
+    return items.filter(matches);
+  }
+
+  // Wspólne wyszukiwanie: bieżąca kategoria na początku, potem pozostałe.
+  const otherCategories = Object.keys(state.categories).filter((key) => key !== state.currentCategory);
+  return [state.currentCategory, ...otherCategories].flatMap((key) =>
+    (state.categories[key] || []).filter(matches)
+  );
 }
 
 function renderItems() {
@@ -1414,7 +1426,7 @@ function createWideRoomGroupsToggle() {
 function createRememberCategoryFiltersToggle() {
   const toggle = createToggleLine({
     id: "remember-category-filters-toggle",
-    text: "Pamietaj filtrowania w kategoriach",
+    text: "Filtrowanie w kategoriach",
     checked: state.rememberCategoryFilters,
     onChange: (checked) => {
       applyRememberCategoryFiltersMode(checked);

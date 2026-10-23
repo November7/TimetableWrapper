@@ -8,9 +8,9 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Zaloguj się - Plan lekcji</title>
-  <script src="<?= tt_escape($assetBase) ?>scripts/theme.js?v=1.5.2"></script>
-  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/app.min.css?v=1.5.2">
-  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.5.2">
+  <script src="<?= tt_escape($assetBase) ?>scripts/theme.js?v=1.5.3"></script>
+  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/app.min.css?v=1.5.3">
+  <link rel="stylesheet" href="<?= tt_escape($assetBase) ?>css/login.css?v=1.5.3">
 </head>
 <body class="login-page">
   <main class="login-card" aria-labelledby="login-title">
@@ -51,7 +51,7 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
           </filter>
         </defs>
       </svg>
-      <img src="<?= tt_escape($assetBase) ?>images/zmse-logo.png?v=1.5.2" alt="Logo ZSME" width="120" height="120" draggable="false">
+      <img src="<?= tt_escape($assetBase) ?>images/zmse-logo.png?v=1.5.3" alt="Logo ZSME" width="120" height="120" draggable="false">
     </div>
     <h1 id="login-title">Plan lekcji</h1>
     <p class="login-school">ZSME w Tarnowie</p>
@@ -80,6 +80,6 @@ if (!defined('TIMETABLE_AUTH_VIEW')) { http_response_code(404); exit; }
       </button>
     </div>
   </main>
-  <script src="<?= tt_escape($assetBase) ?>scripts/login.js?v=1.5.2"></script>
+  <script src="<?= tt_escape($assetBase) ?>scripts/login.js?v=1.5.3"></script>
 </body>
 </html>

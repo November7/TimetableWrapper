@@ -5,7 +5,7 @@
 
 Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.
 
-Aktualna wersja: **1.5.2**. Dostępne są dwa osobne warianty wdrożenia:
+Aktualna wersja: **1.5.3**. Dostępne są dwa osobne warianty wdrożenia:
 
 | Wariant | Plik wejściowy | Dostęp do planu | Przyciski w nagłówku |
 | --- | --- | --- | --- |
@@ -260,6 +260,12 @@ Do Git trafiają `auth/composer.json` i `auth/composer.lock`; nie trafiają `aut
 
 ## Historia wersji
 
+### 1.5.3 (2026-10-23)
+
+- Opcja „Filtrowanie w kategoriach”: po włączeniu wyszukiwanie działa osobno w każdej kategorii (nauczyciele/sale/oddziały) i pamięta ostatnio wpisany tekst.
+- Po wyłączeniu opcji wyszukiwanie jest wspólne dla wszystkich kategorii niezależnie od aktywnej zakładki (np. „1” pokaże klasy 1ta, 1tp oraz sale 11, 12, 31); wyniki z bieżącej kategorii są na początku listy.
+- Przełączenie opcji od razu odświeża listę wyników.
+
 ### 1.5.2 (2026-10-22)
 
 - Odświeżono wizualnie ekran logowania: dodano subtelne tło z poświatą, większe wgłębione logo i tekst oraz wypukłe elementy interfejsu dopasowane do jasnego i ciemnego motywu.
@@ -313,7 +319,7 @@ Do Git trafiają `auth/composer.json` i `auth/composer.lock`; nie trafiają `aut
 - Naprawiono błąd przewijania: kliknięcie linku w panelu lewym przy włączonym przewijaniu niezależnym paneli nie przewija już panelu lewego (pozostaje na tym samym miejscu).
 
 ### 1.3.17 (2026-05-16)
-- Dodano opcję `Pamietaj filtrowania w kategoriach` (checkbox w panelu ustawień na dole).
+- Dodano opcję `Filtrowanie w kategoriach` (checkbox w panelu ustawień na dole).
 - Wprowadzono zapamiętywanie ostatniego słowa kluczowego filtrowania osobno dla kategorii oddziałów, nauczycieli i sal.
 - Przełączanie zakładek kategorii zachowuje i przywraca ostatnio użyty filtr dla danej kategorii.
 

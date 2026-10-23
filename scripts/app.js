@@ -1733,7 +1733,7 @@ function renderGeneratedInfo(plan) {
     // parts.push(plan.validFrom);
   }
 
-  parts.push("Wygenerowano za pomocą programu Vulcan");
+  parts.push("Dane źródłowe: plan lekcji | Vulcan");
   info.append(parts.join(" | "));
 
   const repo_link = document.createElement("a");

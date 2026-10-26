@@ -5,7 +5,7 @@
 
 Wrapper planu lekcji oparty o dane z oryginalnego folderu wygenerowanego przez program **Plan Lekcji firmy Vulcan**. Aplikacja pobiera i parsuje oryginalne pliki HTML, a następnie renderuje plan w przejrzystym widoku bez ramek.
 
-Aktualna wersja: **1.5.4**. Dostępne są dwa osobne warianty wdrożenia:
+Aktualna wersja: **1.5.5**. Dostępne są dwa osobne warianty wdrożenia:
 
 | Wariant | Plik wejściowy | Dostęp do planu | Przyciski w nagłówku |
 | --- | --- | --- | --- |
@@ -263,6 +263,11 @@ Do Git trafiają `auth/composer.json` i `auth/composer.lock`; nie trafiają `aut
 ---
 
 ## Historia wersji
+
+### 1.5.5 (2026-10-26)
+
+- Dodano zapamiętywanie logowania Microsoft 365 po zamknięciu przeglądarki, domyślnie przez 7 dni od zalogowania. Czas można ustawić przez `session_seconds`; w istniejącej konfiguracji należy zmienić `3600` na `604800`, aby korzystać z okresu 7 dni.
+- Uniezależniono czas sesji aplikacji od ważności tokenu ID Microsoft i wydzielono katalog plikowych sesji PHP. Wylogowanie nadal natychmiast kończy sesję.
 
 ### 1.5.4 (2026-10-23)
 

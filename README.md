@@ -90,6 +90,10 @@ Wariant PHP ma niezależny widok aplikacji, chroni też źródła planu i archiw
 
 Konfiguracja aplikacji Entra ID, pliku `auth/config.php` i plików `.htaccess`: **[instrukcja Microsoft 365](microsoft-365.md)**.
 
+Logowanie jest zapamiętywane także po zamknięciu przeglądarki, domyślnie przez 7 dni od zalogowania. W istniejącym `auth/config.php` zmień `session_seconds` z `3600` na `604800`, aby korzystać z tego okresu. Zakres ustawienia wynosi od 300 sekund do 30 dni; aktywność nie przedłuża sesji. Nowe ustawienie obowiązuje po ponownym zalogowaniu. Wylogowanie usuwa sesję od razu. Usunięcie ciasteczek lub zamknięcie okna prywatnego wymaga ponownego logowania.
+
+Sesja aplikacji ma własny termin ważności, niezależny od terminu tokenu ID Microsoft, który jest weryfikowany podczas logowania. Zmiany uprawnień w Entra ID są sprawdzane przy kolejnym logowaniu; dobierz czas sesji do potrzeb organizacji. Dla plikowych sesji PHP aplikacja używa własnego katalogu `timetable-sessions-*` w katalogu tymczasowym systemu, z prawem zapisu dla PHP. Hosting musi zachowywać te pliki przez wybrany czas sesji (również przy zewnętrznym sprzątaniu plików tymczasowych); dla innych mechanizmów zapisu sesji trzeba odpowiednio ustawić retencję po stronie serwera. Zmiana katalogu sesji wymaga jednorazowego ponownego logowania dotychczasowych użytkowników.
+
 ### Wariant publiczny HTML
 
 Uruchom serwer HTTP z katalogu **nadrzędnego** względem projektu, tak aby foldery `plan`, `stareplany` i `TimetableWrapper` były dostępne obok siebie:

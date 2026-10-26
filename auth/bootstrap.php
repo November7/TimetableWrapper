@@ -37,18 +37,29 @@ function tt_config(): ?array
         }
     }
     $config['tenant_id'] = strtolower($config['tenant_id']);
-    $config['session_seconds'] = max(300, min(28800, (int) ($config['session_seconds'] ?? 3600)));
+    $config['session_seconds'] = max(300, min(2592000, (int) ($config['session_seconds'] ?? 604800)));
     $config['required_role'] = (string) ($config['required_role'] ?? '');
     return $config;
 }
 
-function tt_start_session(string $cookiePath): void
+function tt_start_session(string $cookiePath, int $lifetime = 604800): void
 {
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
+    ini_set('session.gc_maxlifetime', (string) $lifetime);
+    // Isolate file sessions from other apps and host cleanup using shorter lifetimes.
+    if (ini_get('session.save_handler') === 'files') {
+        $sessionDir = sys_get_temp_dir() . '/timetable-sessions-' . substr(hash('sha256', __DIR__), 0, 16);
+        if (!is_dir($sessionDir) && !mkdir($sessionDir, 0700, true) && !is_dir($sessionDir)) {
+            throw new RuntimeException('Session directory could not be created.');
+        }
+        session_save_path($sessionDir);
+        ini_set('session.gc_probability', '1');
+        ini_set('session.gc_divisor', '100');
+    }
     session_name('tt_' . substr(hash('sha256', __DIR__), 0, 16));
     session_set_cookie_params([
-        'lifetime' => 0,
+        'lifetime' => $lifetime,
         'path' => $cookiePath,
         'secure' => true,
         'httponly' => true,
@@ -168,7 +179,9 @@ function tt_user_from_claims(object $claims, array $config, string $expectedNonc
         'tenant' => $config['tenant_id'],
         'client' => $config['client_id'],
         'roles' => $roles,
-        'expires' => min((int) $claims->exp, time() + $config['session_seconds']),
+        // The verified ID token establishes identity at login; the app session
+        // has its own absolute lifetime and does not retain Microsoft tokens.
+        'expires' => time() + $config['session_seconds'],
     ];
 }
 

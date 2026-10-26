@@ -12,7 +12,9 @@ return [
     'plan_dir' => dirname(__DIR__, 2) . '/plan',
     'archive_dir' => dirname(__DIR__, 2) . '/stareplany',
     // Both folders MUST be outside the public directory or blocked by .htaccess.
-    'session_seconds' => 3600,
+    // Remember login across browser restarts: 7 days (300..2592000 seconds).
+    // This is an absolute lifetime; activity does not extend it.
+    'session_seconds' => 604800,
     // Optional Entra app role value, e.g. Plan.Read; empty = any user in tenant.
     'required_role' => '',
 ];

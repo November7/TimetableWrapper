@@ -23,7 +23,7 @@ $sourceRequest = str_starts_with($pathInfo, '/source/');
 $ready = $config !== null && is_file(__DIR__ . '/auth/vendor/autoload.php') && extension_loaded('curl') && extension_loaded('openssl');
 
 try {
-    tt_start_session($basePath);
+    tt_start_session($basePath, $config['session_seconds'] ?? 604800);
 } catch (Throwable $error) {
     error_log('Timetable session unavailable.');
     tt_error(503, 'Logowanie jest chwilowo niedostępne.');

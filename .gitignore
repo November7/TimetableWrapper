@@ -16,6 +16,7 @@ auth/vendor/
 __pycache__/
 *.pyc
 .dist/
+/tests
 
 # Local credentials, private keys and server exports must not be published.
 .env
